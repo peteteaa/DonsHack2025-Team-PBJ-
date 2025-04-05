@@ -8,7 +8,6 @@ class NotesController {
 	 * Save notes
 	 */
 	read(req: UserRequest, res: Response) {
-		console.log("read notes");
 		const videoId = req.params.videoID as string;
 		UserModel.findOne({ email: req.user?.email })
 			.then((user) => {
@@ -19,7 +18,7 @@ class NotesController {
 					return;
 				}
 				const userVideo = user.userVideos?.find(
-					(userVideo) => userVideo.videoId === videoId,
+					(video) => video.videoId.toString() === videoId,
 				);
 
 				if (!userVideo) {
@@ -31,9 +30,7 @@ class NotesController {
 				const notes = userVideo.notes;
 
 				// success send the notes
-				res.status(StatusCodes.SUCCESS.code).json({
-					notes: notes,
-				});
+				res.status(StatusCodes.SUCCESS.code).json(notes);
 			})
 			.catch((error) => {
 				console.error(error);
