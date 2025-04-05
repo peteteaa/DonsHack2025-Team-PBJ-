@@ -11,8 +11,12 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: web
+    env_file:
+      - apps/frontend/.env
+      - apps/backend/.env
     ports:
-      - "8000:3000"
+      - "3000:3000"
+      - "4000:4000"
 
 volumes:
   mongo_data:
