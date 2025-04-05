@@ -40,6 +40,9 @@ Also, this project uses pnpm workspace, which allows you to manage dependencies 
      ```
      NEXT_PUBLIC_API_URL= (URL of the backend API)
      ```
+  
+  - Create `.env` files in the root directory:
+    by copying the `.env.example` file
 
 ### Running the Application
 
@@ -111,3 +114,16 @@ This project uses biome for linting and formatting.
   pnpm run check:detailed:backend
   pnpm run lint:frontend
   ```
+
+## Deployment
+
+This repos is using a git workflow for deployment to Heroku.
+
+### Secrets in GitHub Repo:
+
+- HEROKU_API_KEY
+- HEROKU_APP_NAME
+
+### Config Vars in Heroku:
+
+- MONGODB_URL
