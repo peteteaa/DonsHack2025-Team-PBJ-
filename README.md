@@ -29,15 +29,20 @@ Also, this project uses pnpm workspace, which allows you to manage dependencies 
 
 2. Set up environment variables:
 
-   - Create `.env` files in `/apps/backend` :
+   - Create `.env` and `.env.docker` files in `/apps/backend` :
 
      ```
-     PORT= (number of the port to use, this is optional, by default 4000)
+     BACKEND_PORT= (number of the port to use, this is optional, by default 4000)
+     STYTCH_PROJECT_ID= (your stytch project id)
+     STYTCH_SECRET= (your stytch secret)
+     DB_URL= (URI of the database)
+     TOKEN_KEY= (your token)
      ```
 
-   - Create `.env` files in `/apps/frontend` :
+   - Create `.env` and `.env.docker` files in `/apps/frontend` :
 
      ```
+     FRONTEND_PORT= (number of the port to use, this is optional, by default 3000)
      NEXT_PUBLIC_API_URL= (URL of the backend API)
      ```
   
