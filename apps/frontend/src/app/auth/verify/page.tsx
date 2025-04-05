@@ -2,45 +2,65 @@
 
 import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Loader2 } from "lucide-react"
 
 export default function VerifyPage() {
   const router = useRouter()
-  const searchParams = useSearchParams()
-  const token = searchParams.get("token")
+  const params = useSearchParams()
 
   useEffect(() => {
-    const verifyToken = async () => {
-      try {
-        if (!token) {
-          throw new Error("No token provided")
-        }
+    const authenticate = async () => {
+      const token = params?.get("token")
+      const tokenType = params?.get("stytch_token_type")
 
-        const response = await fetch(`/api/auth/verify?token=${token}`, {
-          method: "GET",
-        })
+      if (!token || !tokenType) {
+        console.error("Missing token or token type")
+        router.push("/auth")
+        return
+      }
+
+      try {
+        console.log("Authenticating with token:", token)
+        const response = await fetch(
+          `/api/auth/authenticate?token=${encodeURIComponent(token)}&stytch_token_type=${encodeURIComponent(tokenType)}`,
+          {
+            method: "GET",
+            credentials: "include",
+            headers: {
+              "Accept": "application/json, text/plain"
+            }
+          }
+        )
+
+        const result = await response.json()
+        console.log("Authentication result:", result)
 
         if (!response.ok) {
-          throw new Error("Invalid token")
+          throw new Error(result.error || "Authentication failed")
         }
 
-        // If successful, you might want to set some auth state here
-        // For now, we'll just redirect to a success page
-        router.push("/dashboard")
+        // Log successful authentication
+        console.log("Authentication successful, redirecting to /youtube")
+        
+        // Add a small delay before redirecting to ensure cookie is set
+        await new Promise(resolve => setTimeout(resolve, 500))
+        
+        // If successful, redirect to youtube page
+        router.push("/youtube")
       } catch (error) {
-        // If anything goes wrong, redirect back to the auth page
+        console.error("Authentication error:", error)
+        // If there's an error, redirect to login page
         router.push("/auth")
       }
     }
 
-    verifyToken()
-  }, [token, router])
+    authenticate()
+  }, [params, router])
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="flex flex-col items-center space-y-4">
-        <Loader2 className="h-8 w-8 animate-spin" />
-        <p className="text-lg">Verifying your login...</p>
+      <div className="text-center">
+        <h1 className="text-2xl font-semibold mb-2">Verifying...</h1>
+        <p className="text-muted-foreground">Please wait while we verify your authentication.</p>
       </div>
     </div>
   )
