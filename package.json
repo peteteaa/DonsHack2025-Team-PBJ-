@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "pnpm run --filter backend start && pnpm run --filter frontend start",
+    "start": "pnpm run -r --parallel --aggregate-output start",
 	"dev": "pnpm run -r --parallel --aggregate-output dev",
 	"dev:backend": "pnpm run --filter backend dev",
 	"dev:frontend": "pnpm run --filter frontend dev",
