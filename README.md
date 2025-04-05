@@ -29,17 +29,25 @@ Also, this project uses pnpm workspace, which allows you to manage dependencies 
 
 2. Set up environment variables:
 
-   - Create `.env` files in `/apps/backend` :
+   - Create `.env` and `.env.docker` files in `/apps/backend` :
 
      ```
-     PORT= (number of the port to use, this is optional, by default 4000)
+     BACKEND_PORT= (number of the port to use, this is optional, by default 4000)
+     STYTCH_PROJECT_ID= (your stytch project id)
+     STYTCH_SECRET= (your stytch secret)
+     DB_URL= (URI of the database)
+     TOKEN_KEY= (your token)
      ```
 
-   - Create `.env` files in `/apps/frontend` :
+   - Create `.env` and `.env.docker` files in `/apps/frontend` :
 
      ```
+     FRONTEND_PORT= (number of the port to use, this is optional, by default 3000)
      NEXT_PUBLIC_API_URL= (URL of the backend API)
      ```
+  
+  - Create `.env` files in the root directory:
+    by copying the `.env.example` file
 
 ### Running the Application
 
@@ -111,3 +119,22 @@ This project uses biome for linting and formatting.
   pnpm run check:detailed:backend
   pnpm run lint:frontend
   ```
+
+## Deployment
+
+This repo is deployed on Heroku using the heroku integrated GitHub deployment.
+
+### Secrets in GitHub Repo:
+
+- HEROKU_API_KEY
+- HEROKU_APP_NAME
+
+### Config Vars in Heroku:
+
+- BACKEND_PORT
+- FRONTEND_PORT
+- STYTCH_PROJECT_ID
+- STYTCH_SECRET
+- DB_URL
+- TOKEN_KEY
+- NEXT_PUBLIC_API_URL
