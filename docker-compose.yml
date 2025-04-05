@@ -12,8 +12,8 @@ services:
       dockerfile: Dockerfile
     container_name: web
     env_file:
-      - apps/frontend/.env
-      - apps/backend/.env
+      - apps/frontend/.env.docker
+      - apps/backend/.env.docker
     ports:
       - "3000:3000"
       - "4000:4000"
