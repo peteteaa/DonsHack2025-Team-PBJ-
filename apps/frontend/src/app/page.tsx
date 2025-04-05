@@ -22,7 +22,7 @@ export default function Home() {
 			{user ? (
 				<p className="mt-4 text-xl">
 					{" "}
-					Hello, {user.name} ({user.email})
+					Hello, ({user.email})
 				</p>
 			) : (
 				<p className="mt-4 text-gray-500">Loading user...</p>
