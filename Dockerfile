@@ -28,4 +28,4 @@ COPY --from=build /app/apps/backend/dist /app/apps/backend/dist
 # expose backend port
 EXPOSE 3000
 
-CMD ["pnpm --filter backend start"]
+CMD ["pnpm", "start"]
