@@ -26,5 +26,6 @@ COPY --from=build /app/apps/frontend/.next /app/apps/frontend/.next
 # backend artifacts
 COPY --from=build /app/apps/backend/dist /app/apps/backend/dist
 
-EXPOSE 8000
+# documentation for frontend port
+EXPOSE 3000
 CMD [ "pnpm", "start" ]

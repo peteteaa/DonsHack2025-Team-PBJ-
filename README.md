@@ -126,4 +126,9 @@ This repos is using a git workflow for deployment to Heroku.
 
 ### Config Vars in Heroku:
 
-- MONGODB_URL
+- PORT
+- STYTCH_PROJECT_ID
+- STYTCH_SECRET
+- DB_URL
+- TOKEN_KEY
+- NEXT_PUBLIC_API_URL
