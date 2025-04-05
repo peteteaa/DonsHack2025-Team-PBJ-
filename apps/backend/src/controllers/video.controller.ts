@@ -158,6 +158,31 @@ Generate the ContentTable JSON based on this transcript.`,
 			}
 		}
 	}
+
+	getVideo(req: UserRequest, res: Response) {
+		const videoId = req.params.videoID as string;
+		videoModel
+			.findOne({ _id: videoId })
+			.then((video) => {
+				if (!video) {
+					res.status(StatusCodes.NOT_FOUND.code).json({
+						message: "Video not found",
+					});
+					return;
+				}
+				res.status(StatusCodes.SUCCESS.code).json({
+					url: video.url,
+					transcript: video.transcript,
+					contentTable: video.contentTable,
+				});
+			})
+			.catch((error) => {
+				console.error(error);
+				res.status(StatusCodes.INTERNAL_SERVER_ERROR.code).json({
+					message: "Internal server error",
+				});
+			});
+	}
 }
 
 export default new VideoController();

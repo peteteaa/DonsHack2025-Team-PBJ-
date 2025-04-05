@@ -42,7 +42,7 @@ async function startServer() {
 		app.use("/api", routes);
 
 		// 6) All other routes go to Next.js
-		app.all("*", (req, res) => {
+		app.all(/^(?!\/api).*/, (req, res) => {
 			return handle(req, res);
 		});
 

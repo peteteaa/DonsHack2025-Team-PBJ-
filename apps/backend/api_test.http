@@ -31,10 +31,10 @@ Content-Type: application/json
     "videoUrl": "https://www.youtube.com/watch?v=yFLY0SVutgM"
 }
 
-### get notes for specific video of user ###
-GET {{base_url}}/video/1234/notes
-Content-Type: application/json
+### get video ###
+GET {{base_url}}/video/67f1b1a81eb89d1810c406fa
 
-{
-    "videoId": "1"
-}
+### get notes for specific video of user ###
+GET {{base_url}}/video/notes/67f1b1a81eb89d1810c406fa
+
+
