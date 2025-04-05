@@ -18,3 +18,14 @@ interface FlashCardItem {
 	back: string;
 	front: string;
 }
+export type ContentTable = ContentTableItem[];
+interface ContentTableItem {
+    chapter: string;
+    summary: string;
+    transcript: TranscriptItem[];
+}
+interface TranscriptItem {
+    start: number;
+    end: number;
+    text: string;
+}
