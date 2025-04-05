@@ -1,6 +1,6 @@
 @base_url = http://localhost:4000/api
-@token = 
-@email =  
+@token = BsN4jmB142mCde_RDg1L_TK4l9yaD8I-yCU1shpwHlkn
+@email = bpuhani+donsFlow@gmail.com
 ### test api ###
 GET {{base_url}}
 
@@ -23,10 +23,18 @@ GET {{base_url}}/auth/status
 ### logout ###
 POST {{base_url}}/auth/logout
 
-###
+### process video ###
 POST {{base_url}}/video/process
 Content-Type: application/json
 
 {
     "videoUrl": "https://www.youtube.com/watch?v=yFLY0SVutgM"
+}
+
+### get notes for specific video of user ###
+GET {{base_url}}/video/1234/notes
+Content-Type: application/json
+
+{
+    "videoId": "1"
 }
