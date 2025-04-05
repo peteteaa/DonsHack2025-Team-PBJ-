@@ -6,6 +6,9 @@ export interface User {
 
 export interface Video {
 	id: string;
+	url: string;
+	transcript: TranscriptItem[];
+	contentTable: ContentTable;
 }
 
 type UserVideos = UserVideosItem[];
@@ -17,4 +20,17 @@ interface UserVideosItem {
 interface FlashCardItem {
 	back: string;
 	front: string;
+}
+
+export type ContentTable = ContentTableItem[];
+interface ContentTableItem {
+	chapter: string;
+	summary: string;
+	transcript: TranscriptItem[];
+}
+
+export interface TranscriptItem {
+	start: number;
+	end: number;
+	text: string;
 }

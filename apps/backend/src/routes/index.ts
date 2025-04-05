@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authMiddleware from "../middlewares/auth";
 import auth from "./auth";
 import video from "./video";
 
@@ -9,6 +10,6 @@ router.get("/", (_req, res) => {
 });
 
 router.use("/auth", auth);
-router.use("/video", video);
+router.use("/video", authMiddleware, video);
 
 export default router;
