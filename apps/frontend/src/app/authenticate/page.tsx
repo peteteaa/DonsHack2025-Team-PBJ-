@@ -3,7 +3,6 @@
 import { useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api"
 
 export default function AuthenticatePage() {
   const router = useRouter()
@@ -20,18 +19,21 @@ export default function AuthenticatePage() {
       }
 
       try {
-        debugger
         const response = await fetch(
-          `${API_BASE_URL}/auth/authenticate?token=${token}&stytch_token_type=${tokenType}`,
+          `/api/auth/authenticate?token=${token}&stytch_token_type=${tokenType}`,
           {
             credentials: "include",
+            headers: {
+              Cookie: document.cookie
+            }
           }
         )
 
         if (!response.ok) {
           throw new Error("Authentication failed")
         }
-
+        const data = await response.json()
+        console.log
         // If successful, redirect to home page
         router.push("/youtube")
       } catch (error) {

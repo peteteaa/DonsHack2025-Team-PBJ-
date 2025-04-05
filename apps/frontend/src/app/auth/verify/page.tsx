@@ -21,12 +21,11 @@ export default function VerifyPage() {
       try {
         console.log("Authenticating with token:", token)
         const response = await fetch(
-          `/api/auth/authenticate?token=${encodeURIComponent(token)}&stytch_token_type=${encodeURIComponent(tokenType)}`,
+          `/api/auth/authenticate?token=${token}&stytch_token_type=${tokenType}`,
           {
-            method: "GET",
             credentials: "include",
             headers: {
-              "Accept": "application/json, text/plain"
+              Cookie: document.cookie
             }
           }
         )
@@ -59,7 +58,7 @@ export default function VerifyPage() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <h1 className="text-2xl font-semibold mb-2">Verifying...</h1>
+        <h1 className="text-2xl font-semibold mb-2">Authenticating...</h1>
         <p className="text-muted-foreground">Please wait while we verify your authentication.</p>
       </div>
     </div>

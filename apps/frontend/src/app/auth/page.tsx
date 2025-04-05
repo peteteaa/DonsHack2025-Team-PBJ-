@@ -9,7 +9,6 @@ import { AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { z } from "zod"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api"
 
 const emailSchema = z.object({
   email: z.string().email("Invalid email format")
@@ -34,13 +33,16 @@ export default function AuthPage() {
         return
       }
 
-      const response = await fetch(`${API_BASE_URL}/auth/login`, {
+      const response = await fetch(`/api/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
+          Cookie: document.cookie
         },
         body: JSON.stringify({ email: validationResult.data.email }),
       })
+      debugger
 
       if (!response.ok) {
         const contentType = response.headers.get("content-type")

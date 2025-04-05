@@ -35,11 +35,6 @@ Also, this project uses pnpm workspace, which allows you to manage dependencies 
      PORT= (number of the port to use, this is optional, by default 4000)
      ```
 
-   - Create `.env` files in `/apps/frontend` :
-
-     ```
-     NEXT_PUBLIC_API_URL= (URL of the backend API)
-     ```
 
 ### Running the Application
 

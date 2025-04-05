@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api"
 
 export default function Home() {
   const router = useRouter()
@@ -18,8 +17,11 @@ export default function Home() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch(`${API_BASE_URL}/auth/status`, {
-          credentials: "include"
+        const response = await fetch("/api/auth/status", {
+          credentials: "include",
+          headers: {
+            Cookie: document.cookie
+          }
         })
 
         if (!response.ok) {
@@ -45,9 +47,12 @@ export default function Home() {
 
   const handleLogout = async () => {
     try {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
+      await fetch("/api/auth/logout", {
         method: "POST",
-        credentials: "include"
+        credentials: "include",
+        headers: {
+          Cookie: document.cookie
+        }
       })
       router.push("/auth")
     } catch (err) {
