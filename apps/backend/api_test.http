@@ -33,6 +33,9 @@ Content-Type: application/json
     "videoUrl": "https://www.youtube.com/watch?v=yFLY0SVutgM"
 }
 
+### get video ###
+GET {{base_url}}/video/{{video_id}}
+
 ### get notes for specific video of user ###
 GET {{base_url}}/video/{{video_id}}/notes
 Content-Type: application/json
