@@ -26,10 +26,5 @@ COPY --from=build /app/apps/frontend/.next /app/apps/frontend/.next
 # backend artifacts
 COPY --from=build /app/apps/backend/dist /app/apps/backend/dist
 
-RUN ls -al /app
-RUN ls -al /app/apps
-RUN ls -al /app/apps/frontend
-RUN ls -al /app/apps/backend
-
 EXPOSE 8000
 CMD [ "pnpm", "start" ]
