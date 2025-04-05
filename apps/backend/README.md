@@ -1,10 +1,4 @@
-# DonsHack2025-Team-PBJ-
-
-## Team Members
-
-- Pete Thambundit
-- Jose Aceves Gonzales
-- Benjamin Puhani
+# Backend Documentation
 
 ## Development Setup
 
@@ -21,51 +15,45 @@ Also, this project uses pnpm workspace, which allows you to manage dependencies 
 
 ### Environment Setup
 
-1. Install dependencies:
+1. **Important:** Install dependencies in the root directory:
 
    ```bash
    pnpm install
    ```
 
-2. Set up environment variables:
+2. Enter the backend directory:
 
-   - Create `.env` files in `/apps/backend` :
+   ```bash
+   cd apps/backend
+   ```
 
-     ```
-     PORT= (number of the port to use, this is optional, by default 4000)
-     ```
+3. Set up environment variables:
 
-   - Create `.env` files in `/apps/frontend` :
+   - Create `.env` file in the backend directory:
 
-     ```
-     NEXT_PUBLIC_API_URL= (URL of the backend API)
-     ```
+   ```
+   PORT= (number of the port to use, this is optional, by default 4000)
+   ```
 
 ### Running the Application
 
-- Start both applications:
+- Start the application in backend directory:
 
   ```bash
   pnpm run dev
   ```
 
-- Start backend:
+- Start the application in root directory:
 
   ```bash
   pnpm run dev:backend
-  ```
-
-- Start frontend:
-
-  ```bash
-  pnpm run dev:frontend
   ```
 
 ### Linter, formatter, and type checker
 
 This project uses biome for linting and formatting.
 
-- To **fix** fixable errors and **show details** of not fixable errors you can use:
+- To **fix** fixable errors and **show details** of not fixable errors you can use (in backend directory):
 
   - Check (format and lint):
 
@@ -104,10 +92,3 @@ This project uses biome for linting and formatting.
     ```bash
     pnpm run format:detailed
     ```
-
-- To run biome on the frontend or the backend add `:backend` or `:frontend` to the command:
-
-  ```bash
-  pnpm run check:detailed:backend
-  pnpm run lint:frontend
-  ```

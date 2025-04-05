@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend Documentation
 
-## Getting Started
+## Development Setup
 
-First, run the development server:
+### Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- Node.js (v18 or higher)
+- pnpm (package manager)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Why pnpm?
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+pnpm is a fast, disk space efficient, and secure package manager that provides a more efficient way to manage dependencies in a monorepo. It uses a single global store for all dependencies, which reduces the amount of disk space used and speeds up the installation process. pnpm also provides features like deduplication and zero-installs, which can improve the performance of your development workflow.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Also, this project uses pnpm workspace, which allows you to manage dependencies across multiple packages in a monorepo. for more information, check the [pnpm workspace documentation](https://pnpm.io/workspaces).
 
-## Learn More
+### Environment Setup
 
-To learn more about Next.js, take a look at the following resources:
+1. **Important:** Install dependencies in the root directory:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   pnpm install
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+2. Enter the frontend directory:
 
-## Deploy on Vercel
+   ```bash
+   cd apps/frontend
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Running the Application
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Start the application in frontend directory:
+
+  ```bash
+  pnpm run dev
+  ```
+
+- Start the application in root directory:
+
+  ```bash
+  pnpm run dev:frontend
+  ```
+
+### Linter, formatter, and type checker
+
+This project uses biome for linting and formatting.
+
+- To **fix** fixable errors and **show details** of not fixable errors you can use (in frontend directory):
+
+  - Check (format and lint):
+
+    ```bash
+    pnpm run check
+    ```
+
+  - Format:
+
+    ```bash
+    pnpm run format
+    ```
+
+  - Lint:
+
+    ```bash
+    pnpm run lint
+    ```
+
+- To **show details** of errors you can use:
+
+  - Check (format and lint):
+
+    ```bash
+    pnpm run check:detailed
+    ```
+
+  - Lint:
+
+    ```bash
+    pnpm run lint:detailed
+    ```
+
+  - Format:
+
+    ```bash
+    pnpm run format:detailed
+    ```
