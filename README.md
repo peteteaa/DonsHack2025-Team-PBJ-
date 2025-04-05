@@ -39,16 +39,6 @@ Also, this project uses pnpm workspace, which allows you to manage dependencies 
      TOKEN_KEY= (your token)
      ```
 
-   - Create `.env` and `.env.docker` files in `/apps/frontend` :
-
-     ```
-     FRONTEND_PORT= (number of the port to use, this is optional, by default 3000)
-     NEXT_PUBLIC_API_URL= (URL of the backend API)
-     ```
-  
-  - Create `.env` files in the root directory:
-    by copying the `.env.example` file
-
 ### Running the Application
 
 - Start both applications:

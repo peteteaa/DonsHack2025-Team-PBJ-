@@ -1,36 +1,94 @@
-"use client";
+"use client"
 
-import type { User } from "@shared/types";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { AlertCircle, Loader2 } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+
 
 export default function Home() {
-	const [user, setUser] = useState<User | null>(null);
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [user, setUser] = useState<{ email: string } | null>(null)
 
-	useEffect(() => {
-		fetch("/api")
-			.then((res) => {
-				console.log(res);
-				return res.json();
-			})
-			.then((data) => {
-				console.log(data);
-				setUser({
-					id: "1",
-					email: data.name,
-				});
-			});
-	}, []);
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch("/api/auth/status", {
+          credentials: "include",
+          headers: {
+            Cookie: document.cookie
+          }
+        })
 
-	return (
-		<main className="p-8 text-center">
-			<h1 className="text-4xl font-bold text-blue-600">
-				Frontend + Backend + Shared!
-			</h1>
-			{user ? (
-				<p className="mt-4 text-xl"> Hello, ({user.email})</p>
-			) : (
-				<p className="mt-4 text-gray-500">Loading user...</p>
-			)}
-		</main>
-	);
+        if (!response.ok) {
+          throw new Error("Failed to fetch user status")
+        }
+
+        const data = await response.json()
+        if (!data.authenticated) {
+          router.push("/auth")
+          return
+        }
+
+        setUser({ email: data.email })
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    checkAuth()
+  }, [router])
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          Cookie: document.cookie
+        }
+      })
+      router.push("/auth")
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to logout")
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <CardTitle>Welcome to DonsFlow</CardTitle>
+          <CardDescription>You are logged in as {user?.email}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleLogout} className="w-full">
+            Logout
+          </Button>
+        </CardFooter>
+      </Card>
+    </div>
+  )
 }
