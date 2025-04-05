@@ -2,7 +2,7 @@
 FROM node:lts-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN corepack enable && pnpm add -g concurrently
 COPY . /app
 WORKDIR /app
 
@@ -11,7 +11,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-l
 
 FROM base AS build
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-RUN pnpm run build
+RUN pnpm run -r build
 
 FROM base
 # get node_modules
@@ -26,6 +26,9 @@ COPY --from=build /app/apps/frontend/.next /app/apps/frontend/.next
 # backend artifacts
 COPY --from=build /app/apps/backend/dist /app/apps/backend/dist
 
-# documentation for frontend port
-EXPOSE 3000
-CMD [ "pnpm", "start" ]
+# frontend and backend ports
+EXPOSE ${FRONTEND_PORT} ${BACKEND_PORT}
+# Combined health check for frontend (${FRONTEND_PORT}) and backend (${BACKEND_PORT})
+HEALTHCHECK --interval=30s --timeout=10s \
+  CMD curl -f http://localhost:${FRONTEND_PORT} && curl -f http://localhost:${BACKEND_PORT} || exit 1
+CMD ["concurrently", "pnpm --filter backend start", "pnpm --filter frontend start"]
