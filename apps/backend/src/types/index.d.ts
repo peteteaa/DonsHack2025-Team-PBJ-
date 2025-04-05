@@ -5,6 +5,6 @@ export type InputToken = {
 	email: string;
 };
 
-export interface RequestUser extends Request {
+export interface UserRequest extends Request {
 	user?: User;
 }

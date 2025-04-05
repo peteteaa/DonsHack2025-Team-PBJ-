@@ -2,11 +2,11 @@ import ResponseStatus from "apps/backend/src/types/response-codes";
 import type { NextFunction, Response } from "express";
 import type { JwtPayload } from "jsonwebtoken";
 import User from "../models/user.model";
-import type { RequestUser } from "../types";
+import type { UserRequest } from "../types";
 import { decode } from "../utils/create-token";
 import { UnauthorizedError } from "../utils/errors";
 
-export default (req: RequestUser, res: Response, next: NextFunction) => {
+export default (req: UserRequest, res: Response, next: NextFunction) => {
 	const token = req.cookies.session_token;
 	if (!token) {
 		res
