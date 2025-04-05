@@ -1,6 +1,6 @@
 @base_url = http://localhost:4000/api
-@token = 
-@email =  
+@token = KWkfCIQT8eIy8Cix_rfjcO2jdni5z5oJCWTaSdMF4Haf
+@email = jose.acevesgon@gmail.com 
 ### test api ###
 GET {{base_url}}
 
