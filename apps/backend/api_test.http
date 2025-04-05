@@ -23,4 +23,10 @@ GET {{base_url}}/auth/status
 ### logout ###
 POST {{base_url}}/auth/logout
 
+###
+POST {{base_url}}/video/process
+Content-Type: application/json
 
+{
+    "videoUrl": "https://www.youtube.com/watch?v=yFLY0SVutgM"
+}

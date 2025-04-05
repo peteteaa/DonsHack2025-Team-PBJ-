@@ -7,10 +7,17 @@ export default function Home() {
 	const [user, setUser] = useState<User | null>(null);
 
 	useEffect(() => {
-		fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/health`)
-			.then((res) => res.json())
+		fetch("/api")
+			.then((res) => {
+				console.log(res);
+				return res.json();
+			})
 			.then((data) => {
-				setUser(data.user);
+				console.log(data);
+				setUser({
+					id: "1",
+					email: data.name,
+				});
 			});
 	}, []);
 
@@ -20,10 +27,7 @@ export default function Home() {
 				Frontend + Backend + Shared!
 			</h1>
 			{user ? (
-				<p className="mt-4 text-xl">
-					{" "}
-					Hello, ({user.email})
-				</p>
+				<p className="mt-4 text-xl"> Hello, ({user.email})</p>
 			) : (
 				<p className="mt-4 text-gray-500">Loading user...</p>
 			)}
