@@ -1,19 +1,29 @@
-import type { User } from "@shared/types";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import { EnvConfig } from "./config/env.config";
+// import connectDB from "./config/mongoose";
+import routes from "./routes";
 
 const app = express();
+const PORT = EnvConfig().port;
+
 app.use(cors());
+app.use(express.json());
+app.use(cookieParser());
 
-app.get("/api/health", (_req, res) => {
-	const user: User = {
-		id: "1",
-		name: "John",
-		email: "john@example.com",
-	};
-	res.json({ status: "ok", user });
-});
+app.use("/api", routes);
 
-app.listen(4000, () => {
-	console.log("Backend running at http://localhost:4000");
-});
+const startServer = async () => {
+	try {
+		// await connectDB();
+		app.listen(PORT, () => {
+			console.log(`Server is running on port ${PORT}`);
+		});
+	} catch (error) {
+		console.error("Failed to start server:", error);
+		process.exit(1);
+	}
+};
+
+startServer();
