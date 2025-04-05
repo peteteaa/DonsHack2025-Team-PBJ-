@@ -126,7 +126,8 @@ This repos is using a git workflow for deployment to Heroku.
 
 ### Config Vars in Heroku:
 
-- PORT
+- BACKEND_PORT
+- FRONTEND_PORT
 - STYTCH_PROJECT_ID
 - STYTCH_SECRET
 - DB_URL
