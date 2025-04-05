@@ -1,0 +1,26 @@
+@base_url = http://localhost:4000/api
+@token = 
+@email =  
+### test api ###
+GET {{base_url}}
+
+
+### login ###
+POST {{base_url}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "{{email}}"
+}
+
+### authenticate ###
+GET {{base_url}}/auth/authenticate?stytch_token_type=magic_links&token={{token}}
+
+### status ###
+GET {{base_url}}/auth/status
+
+
+### logout ###
+POST {{base_url}}/auth/logout
+
+
