@@ -1,103 +1,88 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Label } from "@/components/ui/label"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api"
+
 export default function Home() {
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSuccess, setIsSuccess] = useState(false)
+  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [user, setUser] = useState<{ email: string } | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-    setError(null)
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/status`, {
+          credentials: "include"
+        })
 
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email }),
-      })
+        if (!response.ok) {
+          throw new Error("Failed to fetch user status")
+        }
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Failed to send login link")
+        const data = await response.json()
+        if (!data.authenticated) {
+          router.push("/auth")
+          return
+        }
+
+        setUser({ email: data.email })
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred")
+      } finally {
+        setIsLoading(false)
       }
+    }
 
-      const data = await response.json()
-      setIsSuccess(true)
+    checkAuth()
+  }, [router])
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include"
+      })
+      router.push("/auth")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send login link. Please try again.")
-    } finally {
-      setIsLoading(false)
+      setError(err instanceof Error ? err.message : "Failed to logout")
     }
   }
 
-  const isValidEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    )
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Sign in</CardTitle>
-          <CardDescription>Enter your email to receive a magic link</CardDescription>
+          <CardTitle>Welcome to DonsFlow</CardTitle>
+          <CardDescription>You are logged in as {user?.email}</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent>
-            {error && (
-              <Alert variant="destructive" className="mb-4">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            )}
-
-            {isSuccess ? (
-              <Alert className="mb-4">
-                <AlertDescription>Check your email! We sent you a magic link to sign in.</AlertDescription>
-              </Alert>
-            ) : (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-            )}
-          </CardContent>
-
-          {!isSuccess && (
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading || !isValidEmail(email)}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  "Send Magic Link"
-                )}
-              </Button>
-            </CardFooter>
+        <CardContent>
+          {error && (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           )}
-        </form>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleLogout} className="w-full">
+            Logout
+          </Button>
+        </CardFooter>
       </Card>
     </div>
   )

@@ -7,6 +7,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Label } from "@/components/ui/label"
 import { AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { z } from "zod"
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api"
+
+const emailSchema = z.object({
+  email: z.string().email("Invalid email format")
+})
 
 export default function AuthPage() {
   const [email, setEmail] = useState("")
@@ -20,83 +27,95 @@ export default function AuthPage() {
     setError(null)
 
     try {
-      const response = await fetch("/api/login", {
+      const validationResult = emailSchema.safeParse({ email })
+      if (!validationResult.success) {
+        setError("Invalid email format")
+        setIsLoading(false)
+        return
+      }
+
+      const response = await fetch(`${API_BASE_URL}/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: validationResult.data.email }),
       })
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || "Failed to send login link")
+        const contentType = response.headers.get("content-type")
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Failed to send login link")
+        } else {
+          const errorText = await response.text()
+          throw new Error(errorText || "Failed to send login link")
+        }
       }
 
       const data = await response.json()
       setIsSuccess(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send login link. Please try again.")
+      setError(err instanceof Error ? err.message : "An error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const isValidEmail = (email: string) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-2xl">Sign in</CardTitle>
-          <CardDescription>Enter your email to receive a magic link</CardDescription>
+          <CardTitle>Welcome to DonsFlow</CardTitle>
+          <CardDescription>Enter your email to sign in or create an account</CardDescription>
         </CardHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <CardContent>
+            <div className="grid w-full items-center gap-4">
+              <div className="flex flex-col space-y-1.5">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  placeholder="Enter your email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value)
+                    setError(null)
+                  }}
+                  disabled={isLoading || isSuccess}
+                  required
+                />
+              </div>
+            </div>
             {error && (
-              <Alert variant="destructive" className="mb-4">
+              <Alert variant="destructive" className="mt-4">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
-            {isSuccess ? (
-              <Alert className="mb-4">
-                <AlertDescription>Check your email! We sent you a magic link to sign in.</AlertDescription>
+            {isSuccess && (
+              <Alert className="mt-4">
+                <AlertDescription>Check your email for a login link!</AlertDescription>
               </Alert>
-            ) : (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
             )}
           </CardContent>
-
-          {!isSuccess && (
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading || !isValidEmail(email)}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  "Send Magic Link"
-                )}
-              </Button>
-            </CardFooter>
-          )}
+          <CardFooter>
+            <Button
+              className="w-full"
+              type="submit"
+              disabled={isLoading || isSuccess}
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending link...
+                </>
+              ) : (
+                "Continue with Email"
+              )}
+            </Button>
+          </CardFooter>
         </form>
       </Card>
     </div>
