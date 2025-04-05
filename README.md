@@ -117,7 +117,7 @@ This project uses biome for linting and formatting.
 
 ## Deployment
 
-This repos is using a git workflow for deployment to Heroku.
+This repo is deployed on Heroku using the heroku integrated GitHub deployment.
 
 ### Secrets in GitHub Repo:
 
