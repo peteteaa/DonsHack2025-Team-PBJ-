@@ -66,3 +66,24 @@ interface TranscriptItem {
 	start: number;
 	text: string;
 }
+
+export interface QuizData {
+	quiz: QuizOpenItem[] | QuizMultipleItem[];
+	type: QuestionType;
+}
+
+export interface QuizOpenItem {
+	answer: string;
+	explanation: string;
+	question: string;
+}
+
+export interface QuizMultipleItem {
+	answer: string;
+	explanation: string;
+	question: string;
+	options: string[];
+	correct: string[];
+}
+
+type QuestionType = "open" | "multiple";

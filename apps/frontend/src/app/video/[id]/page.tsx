@@ -13,7 +13,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { VideoPage as VideoPageType } from "@shared/types";
+import type {
+	VideoPage as VideoPageType,
+	QuizData,
+	QuizMultipleItem,
+	QuizOpenItem,
+} from "@shared/types";
 
 // YouTube IFrame API types
 declare global {
@@ -61,32 +66,9 @@ interface ChapterContent {
 	transcript: TranscriptItem[];
 }
 
-interface MultipleChoiceQuestion {
-	question: string;
-	options: string[];
-	correct: string[];
-	explanation: string;
-}
-
-interface OpenResponseQuestion {
-	question: string;
-	answer: string;
-}
-
-type QuizQuestion = MultipleChoiceQuestion | OpenResponseQuestion;
-
-interface QuizData {
-	type: "multiple" | "open";
-	Quiz: QuizQuestion[];
-}
-
-interface VideoPageProps {
-	contentTable: ChapterContent[];
-}
-
 type QuestionType = "open" | "multiple";
 
-const VideoPage = ({ contentTable }: VideoPageProps) => {
+const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 	const params = useParams();
 	const id = params?.id as string;
 	const [isFullscreen, setIsFullscreen] = useState(false);
@@ -96,7 +78,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 	const [quizData, setQuizData] = useState<QuizData>({
 		type: "multiple",
-		Quiz: [],
+		quiz: [],
 	});
 	const [videoPageData, setVideoPageData] = useState<VideoPageType | null>(
 		null
@@ -110,20 +92,22 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 
 	const [currentTimestamp, setCurrentTimestamp] = useState<number | null>(null);
 
+	const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+
 	const isMultipleChoice = (
-		question: QuizQuestion
-	): question is MultipleChoiceQuestion => {
-		return "options" in question && "correct" in question;
+		question: QuizMultipleItem | QuizOpenItem
+	): question is QuizMultipleItem => {
+		return "options" in question && "answer" in question;
 	};
 
 	const isOpenResponse = (
-		question: QuizQuestion
-	): question is OpenResponseQuestion => {
+		question: QuizMultipleItem | QuizOpenItem
+	): question is QuizOpenItem => {
 		return "answer" in question;
 	};
 
 	const handleGenerateQuestions = async () => {
-		if (!player) return;
+		if (!(player && videoPageData)) return;
 		const currentTime = Math.floor(player.getCurrentTime());
 		setCurrentTimestamp(currentTime);
 
@@ -131,113 +115,56 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 		setCurrentQuestionIndex(0);
 		setSelectedAnswer(null);
 		setShowAnswer(false);
+		setIsGeneratingQuiz(true);
 
-		if (questionType === "multiple") {
-			setQuizData({
-				type: "multiple",
-				Quiz: [
-					{
-						question:
-							"What is the primary reason for using functions over classes in simple scenarios?",
-						options: [
-							"To reduce complexity and boilerplate",
-							"To increase flexibility and reusability",
-							"To handle multi-threading operations",
-						],
-						correct: ["To reduce complexity and boilerplate"],
-						explanation:
-							"Functions are preferred in simple scenarios because they help reduce unnecessary complexity and boilerplate that comes with using classes. Classes are best suited for situations that require multiple methods, data access, and multiple instances.",
+		try {
+			const response = await fetch(
+				`/api/video/${videoPageData.videoId._id}/quiz`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
 					},
-					{
-						question:
-							"What does the term 'polymorphism' mean in object-oriented programming?",
-						options: [
-							"The ability to use multiple data types in the same variable",
-							"The ability to create classes from existing classes",
-							"The ability for different classes to be treated as instances of the same class",
-						],
-						correct: [
-							"The ability for different classes to be treated as instances of the same class",
-						],
-						explanation:
-							"Polymorphism allows different classes to be treated as instances of the same class, enabling method overriding and enhancing flexibility in the code.",
-					},
-					{
-						question:
-							"Which of the following is a key benefit of encapsulation in object-oriented programming?",
-						options: [
-							"Improved performance",
-							"Reduced complexity by hiding internal states",
-							"Increased inheritance flexibility",
-						],
-						correct: ["Reduced complexity by hiding internal states"],
-						explanation:
-							"Encapsulation helps by hiding the internal state of an object and exposing only the necessary functionality, reducing complexity and improving maintainability.",
-					},
-					{
-						question:
-							"What does inheritance allow in object-oriented programming?",
-						options: [
-							"Reusing code from other classes",
-							"Breaking the encapsulation principle",
-							"Managing multi-threaded processes",
-						],
-						correct: ["Reusing code from other classes"],
-						explanation:
-							"Inheritance allows one class to inherit properties and methods from another class, promoting code reuse and reducing redundancy.",
-					},
-					{
-						question:
-							"Which of the following best describes the purpose of a constructor in a class?",
-						options: [
-							"It initializes the object's state when the class is instantiated",
-							"It defines the behavior of the class's methods",
-							"It manages the class's memory allocation",
-						],
-						correct: [
-							"It initializes the object's state when the class is instantiated",
-						],
-						explanation:
-							"The constructor is a special method in a class that is automatically invoked when an object is created. Its purpose is to initialize the object's state and set up initial values for its properties.",
-					},
-				],
-			});
-		} else {
-			setQuizData({
-				type: "open",
-				Quiz: [
-					{
-						question:
-							"Why should you avoid using classes with static methods for utility functions in Python?",
-						answer:
-							"Using classes with static methods for utility functions adds unnecessary complexity and boilerplate code. In Python, it's better to use modules instead, as they provide a cleaner way to organize code without the overhead of class instantiation or static method calls. This makes the code simpler to read and maintain.",
-					},
-					{
-						question:
-							"Explain the concept of composition over inheritance and its benefits.",
-						answer:
-							"Composition over inheritance means favoring object composition (combining simple objects to build more complex ones) rather than using inheritance hierarchies. This approach reduces coupling between classes, improves code maintainability, and provides more flexibility in design. It helps avoid problems like the fragile base class and deep inheritance chains.",
-					},
-					{
-						question:
-							"What are the main drawbacks of using complex inheritance structures in Python?",
-						answer:
-							"Complex inheritance structures can lead to several problems: they make code harder to understand and maintain, create tight coupling between classes, make changes more difficult due to the ripple effect through the inheritance chain, and can lead to the 'diamond problem' in multiple inheritance. It's often better to use composition or simpler inheritance structures.",
-					},
-				],
-			});
+					body: JSON.stringify({
+						start: 0,
+						end: currentTime,
+						type: questionType,
+					}),
+				}
+			);
+
+			if (!response.ok) {
+				throw new Error(await response.text());
+			}
+			const data: QuizData = await response.json();
+			setQuizData(data);
+		} catch (error) {
+			if (error instanceof Error) {
+				const errorJson = JSON.parse(error.message);
+				if (errorJson.message === "Segment must be at least 5 minutes long") {
+					alert(errorJson.message);
+				} else {
+					console.error("Error generating quiz:", errorJson.message);
+				}
+			} else {
+				console.error("Error generating quiz:", error);
+			}
+			// Reset quiz state on error
+			setShowQuiz(false);
+		} finally {
+			setIsGeneratingQuiz(false);
 		}
 	};
 
 	const handleAnswerSelect = (answer: string) => {
 		setSelectedAnswer(answer);
-		const currentQuestion = quizData.Quiz[currentQuestionIndex];
+		const currentQuestion = quizData.quiz[currentQuestionIndex];
 		if (
 			isMultipleChoice(currentQuestion) &&
-			answer === currentQuestion.correct[0]
+			currentQuestion.answer.includes(answer)
 		) {
 			setTimeout(() => {
-				if (currentQuestionIndex < quizData.Quiz.length - 1) {
+				if (currentQuestionIndex < quizData.quiz.length - 1) {
 					setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
 					setSelectedAnswer(null);
 					setShowAnswer(false);
@@ -246,15 +173,52 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 		}
 	};
 
-	const handleShortAnswerSubmit = () => {
-		setShowAnswer(true);
-		// Only move to next question if there is one
-		if (currentQuestionIndex < quizData.Quiz.length - 1) {
-			setTimeout(() => {
-				setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
-				setSelectedAnswer(null);
-				setShowAnswer(false);
-			}, 3000);
+	const handleNextQuestion = () => {
+		if (currentQuestionIndex < quizData.quiz.length - 1) {
+			setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+			setSelectedAnswer(null);
+			setShowAnswer(false);
+		}
+	};
+
+	const handleShortAnswerSubmit = async () => {
+		if (!videoPageData) return;
+		if (!selectedAnswer) return;
+
+		try {
+			const response = await fetch(
+				`/api/video/${videoPageData.videoId._id}/quiz/validate`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						answer: quizData.quiz[currentQuestionIndex].answer,
+						userAnswer: selectedAnswer,
+						question: quizData.quiz[currentQuestionIndex].question,
+					}),
+				}
+			);
+
+			if (!response.ok) {
+				throw new Error("Failed to validate answer");
+			}
+
+			const data = await response.json();
+			setShowAnswer(true);
+
+			// Update the current question's explanation based on the API response
+			const updatedQuiz = [...quizData.quiz];
+			if (!data.correct) {
+				updatedQuiz[currentQuestionIndex] = {
+					...updatedQuiz[currentQuestionIndex],
+					explanation: data.explanation,
+				};
+				setQuizData({ ...quizData, quiz: updatedQuiz });
+			}
+		} catch (error) {
+			console.error("Error validating answer:", error);
 		}
 	};
 
@@ -412,7 +376,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 									{showQuiz ? (
 										<div className="space-y-4">
 											<div className="p-4 border rounded-lg">
-												{quizData.Quiz.length === 0 ? (
+												{quizData.quiz.length === 0 ? (
 													<div>
 														<p className="mb-4">No questions available yet.</p>
 														<div className="flex items-center gap-4">
@@ -444,10 +408,13 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 															</div>
 															<Button
 																className="text-sm"
-																onClick={() => handleGenerateQuestions()}
-																variant="default"
+																onClick={handleGenerateQuestions}
+																disabled={isGeneratingQuiz}
+																variant="outline"
 															>
-																Generate Questions
+																{isGeneratingQuiz
+																	? "Generating Quiz..."
+																	: "Generate Quiz"}
 															</Button>
 														</div>
 													</div>
@@ -458,7 +425,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 																<Button
 																	className="text-sm"
 																	onClick={() => {
-																		setQuizData({ type: "multiple", Quiz: [] });
+																		setQuizData({ type: "multiple", quiz: [] });
 																		setCurrentQuestionIndex(0);
 																		setSelectedAnswer(null);
 																		setShowAnswer(false);
@@ -468,37 +435,28 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 																	Reset Questions
 																</Button>
 																<h3 className="text-lg font-semibold ml-4">
-																	{quizData.Quiz[currentQuestionIndex].question}
+																	{quizData.quiz[currentQuestionIndex].question}
 																</h3>
 															</div>
 														</div>
 														<div className="space-y-2">
 															{questionType === "multiple" &&
 															isMultipleChoice(
-																quizData.Quiz[currentQuestionIndex]
+																quizData.quiz[currentQuestionIndex]
 															) ? (
-																quizData.Quiz[currentQuestionIndex].options.map(
+																quizData.quiz[currentQuestionIndex].options.map(
 																	(option: string) => {
 																		const currentQuestion =
-																			quizData.Quiz[currentQuestionIndex];
+																			quizData.quiz[currentQuestionIndex];
 																		const isCorrect =
 																			isMultipleChoice(currentQuestion) &&
-																			selectedAnswer === option &&
-																			selectedAnswer ===
-																				currentQuestion.correct[0];
-																		const isIncorrect =
-																			isMultipleChoice(currentQuestion) &&
-																			selectedAnswer === option &&
-																			selectedAnswer !==
-																				currentQuestion.correct[0];
+																			currentQuestion.answer.includes(option);
 
 																		return (
 																			<Button
 																				className={`w-full justify-start ${
 																					isCorrect
 																						? "bg-green-500 hover:bg-green-600"
-																						: isIncorrect
-																						? "bg-red-500 hover:bg-red-600"
 																						: ""
 																				}`}
 																				disabled={false}
@@ -528,35 +486,29 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 																		value={selectedAnswer || ""}
 																	/>
 																	<div className="flex gap-2">
-																		<Button
-																			className="w-full"
-																			disabled={!selectedAnswer || showAnswer}
-																			onClick={handleShortAnswerSubmit}
-																			variant="outline"
-																		>
-																			Check Answer
-																		</Button>
-																		{showAnswer &&
-																			currentQuestionIndex <
-																				quizData.Quiz.length - 1 && (
-																				<Button
-																					className="w-full"
-																					onClick={() => {
-																						setCurrentQuestionIndex(
-																							(prevIndex) => prevIndex + 1
-																						);
-																						setSelectedAnswer(null);
-																						setShowAnswer(false);
-																					}}
-																					variant="default"
-																				>
-																					Next Question
-																				</Button>
-																			)}
+																		{!showAnswer ? (
+																			<Button
+																				className="w-full"
+																				disabled={!selectedAnswer}
+																				onClick={handleShortAnswerSubmit}
+																				variant="outline"
+																			>
+																				Check Answer
+																			</Button>
+																		) : (
+																			<Button
+																				className="w-full"
+																				onClick={handleNextQuestion}
+																				variant="default"
+																				disabled={currentQuestionIndex >= quizData.quiz.length - 1}
+																			>
+																				Next Question
+																			</Button>
+																		)}
 																	</div>
 																	{showAnswer &&
 																		isOpenResponse(
-																			quizData.Quiz[currentQuestionIndex]
+																			quizData.quiz[currentQuestionIndex]
 																		) && (
 																			<div className="mt-4 p-4 bg-muted rounded-lg">
 																				<p className="font-semibold">
@@ -564,8 +516,17 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 																				</p>
 																				<p>
 																					{
-																						quizData.Quiz[currentQuestionIndex]
+																						quizData.quiz[currentQuestionIndex]
 																							.answer
+																					}
+																				</p>
+																				<p className="font-semibold">
+																					Explanation:
+																				</p>
+																				<p>
+																					{
+																						quizData.quiz[currentQuestionIndex]
+																							.explanation
 																					}
 																				</p>
 																			</div>
@@ -576,16 +537,16 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 														{selectedAnswer &&
 															questionType === "multiple" &&
 															isMultipleChoice(
-																quizData.Quiz[currentQuestionIndex]
+																quizData.quiz[currentQuestionIndex]
 															) &&
-															selectedAnswer ===
-																quizData.Quiz[currentQuestionIndex]
-																	.correct[0] && (
+															quizData.quiz[
+																currentQuestionIndex
+															].answer.includes(selectedAnswer) && (
 																<div className="mt-4 p-4 bg-muted rounded-lg">
 																	<p className="font-semibold">Explanation:</p>
 																	<p>
 																		{
-																			quizData.Quiz[currentQuestionIndex]
+																			quizData.quiz[currentQuestionIndex]
 																				.explanation
 																		}
 																	</p>
