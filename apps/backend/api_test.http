@@ -39,3 +39,14 @@ GET {{base_url}}/video/{{video_id}}
 ### get notes for specific video of user ###
 GET {{base_url}}/video/{{video_id}}/notes
 Content-Type: application/json
+
+### create note for specific video of user ###
+POST {{base_url}}/video/{{video_id}}/notes
+Content-Type: application/json
+
+{
+    "note": {
+      "moment": 0,
+      "text": "This is a note for the beginning of the video"
+    }
+}
