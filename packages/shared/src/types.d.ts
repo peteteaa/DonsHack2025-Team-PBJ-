@@ -21,7 +21,7 @@ type UserVideos = UserVideosItem[];
 interface UserVideosItem {
 	flashCard: FlashCardItem[];
 	notes?: UserNotes;
-	videoId: string;
+	videoId: string | Video;
 }
 interface FlashCardItem {
 	back: string;
