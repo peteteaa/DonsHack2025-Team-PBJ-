@@ -41,3 +41,28 @@ export interface TranscriptItem {
 	end: number;
 	text: string;
 }
+
+export interface VideoPage {
+	_id: string;
+	flashCard: FlashCardItem[];
+	notes: UserNoteItem[];
+	videoId: VideoId;
+}
+interface VideoId {
+	__v: number;
+	_id: string;
+	contentTable: ContentTableItem[];
+	title: string;
+	transcript: TranscriptItem[];
+	url: string;
+}
+interface ContentTableItem {
+	chapter: string;
+	summary: string;
+	transcript: TranscriptItem[];
+}
+interface TranscriptItem {
+	end: number;
+	start: number;
+	text: string;
+}
