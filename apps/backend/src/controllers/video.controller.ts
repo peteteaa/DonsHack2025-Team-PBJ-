@@ -8,17 +8,20 @@ import type {
 	Video,
 } from "@shared/types";
 import type { Response } from "express";
-import { YoutubeTranscript } from "youtube-transcript";
 import { z } from "zod";
 import { EnvConfig } from "../config/env.config";
 import userModel from "../models/user.model";
 import UserModel from "../models/user.model";
 import videoModel from "../models/video.model";
-import type {RawTranscriptItem, UserRequest} from "../types";
+import type { RawTranscriptItem, UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
 import { BadRequestError, NotFoundError } from "../utils/errors";
 import { getVideoTitle } from "../utils/get_video_title";
-import {fetchTranscript, formatTranscript, mergeSegments} from "../utils/transcript";
+import {
+	fetchTranscript,
+	formatTranscript,
+	mergeSegments,
+} from "../utils/transcript";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
 
 const apiKey = EnvConfig().gemini.apiKey;
@@ -103,7 +106,9 @@ class VideoController {
 				return;
 			}
 
-			await fetchTranscript(new URL(validatedUrl).searchParams.get("v") as string)
+			await fetchTranscript(
+				new URL(validatedUrl).searchParams.get("v") as string,
+			);
 
 			const transcript: RawTranscriptItem[] = [];
 			console.log("Transcript fetched successfully");

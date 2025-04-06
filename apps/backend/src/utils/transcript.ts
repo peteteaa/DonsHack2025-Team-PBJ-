@@ -1,64 +1,46 @@
 import type { TranscriptItem } from "@shared/types";
-import type { RawTranscriptItem } from "../types";
-import { Innertube } from 'youtubei.js';
+import { Innertube } from "youtubei.js";
+import type TranscriptSegment from "youtubei.js/dist/src/parser/classes/TranscriptSegment";
 
+export const fetchTranscript = async (youTubeId: string) => {
+	const youtube = await Innertube.create({
+		lang: "en",
+		location: "US",
+		retrieve_player: false,
+	});
 
-export const fetchTranscript = async (youTubeId: string): Promise<string[] | undefined> => {
-
-    const youtube = await Innertube.create({
-        lang: 'en',
-        location: 'US',
-        retrieve_player: false,
-    });
-
-
-    try {
-        const info = await youtube.getInfo(youTubeId);
-        const transcriptData = await info.getTranscript();
-        console.log(transcriptData)
-        const mergedSegments = transcriptData.transcript.content?.body?.initial_segments
-
-		console.log(mergedSegments)
-
-		return [];
-
-    } catch (error) {
-        console.error('Error fetching transcript:', error);
-        throw error;
-    }
+	try {
+		const info = await youtube.getInfo(youTubeId);
+		const transcriptData = await info.getTranscript();
+		return transcriptData.transcript.content?.body?.initial_segments;
+	} catch (error) {
+		console.error("Error fetching transcript:", error);
+		throw error;
+	}
 };
 
-export function formatTranscript(
-    transcript: RawTranscriptItem[],
-): TranscriptItem[] {
-    return transcript.map((item) => ({
-        start: Number.parseInt(item.offset.toFixed(3)),
-        end: Number.parseInt((item.offset + item.duration).toFixed(3)),
-        text: item.text,
-    }));
-}
+// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+export function formatTranscript(segments: any): TranscriptItem[] {
+	/**
+	 * Example Segment
+	 * TranscriptSegment {
+	 *     type: 'TranscriptSegment',
+	 *     start_ms: '1469',
+	 *     end_ms: '3720',
+	 *     snippet: Text {
+	 *       runs: [Array],
+	 *       text: 'learn as much Python as we can in five'
+	 *     },
+	 *     start_time_text: Text { text: '0:01' },
+	 *     target_id: 'I2wURDqiXdM.CgNhc3ISAmVuGgA%3D.1469.3720'
+	 *   },
+	 */
 
-export function mergeSegments(segments: TranscriptItem[]): TranscriptItem[] {
-    if (segments.length === 0) return [];
-    // Start with the first segment
-    const merged = [segments[0]];
-
-    for (let i = 1; i < segments.length; i++) {
-        const last = merged[merged.length - 1];
-        const current = segments[i];
-
-        // Check if current segment overlaps with the last one
-        if (current.start < last.end) {
-            // Merge by extending the end time and concatenating the texts
-            merged[merged.length - 1] = {
-                start: last.start,
-                end: Math.max(last.end, current.end),
-                text: `${last.text} ${current.text}`,
-            };
-        } else {
-            merged.push(current);
-        }
-    }
-
-    return merged;
+	return segments.map(
+		(item: TranscriptSegment): TranscriptItem => ({
+			start: Math.floor(Number.parseInt(item.start_ms) / 1000),
+			end: Math.floor(Number.parseInt(item.end_ms) / 1000),
+			text: item.snippet.text || "",
+		}),
+	);
 }
