@@ -8,9 +8,7 @@ services:
       - mongo_data:/data/db
 
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: sihingbenni/dons-flow:latest
     container_name: web
     env_file:
       - apps/backend/.env.docker
