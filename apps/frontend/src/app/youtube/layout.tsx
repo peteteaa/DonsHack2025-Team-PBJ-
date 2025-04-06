@@ -1,23 +1,23 @@
-import type React from "react"
-import { Inter } from "next/font/google"
+import { Inter } from "next/font/google";
+import type React from "react";
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "YouTube Video Player",
-  description: "A simple YouTube video player application",
-}
+	title: "YouTube Video Player",
+	description: "A simple YouTube video player application",
+};
 
 export default function YouTubeLayout({
-  children,
+	children,
 }: {
-  children: React.ReactNode
+	children: React.ReactNode;
 }) {
-  return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
-        <main className="min-h-screen bg-background">{children}</main>
-      </body>
-    </html>
-  )
+	return (
+		<html lang="en" suppressHydrationWarning>
+			<body className={inter.className}>
+				<main className="min-h-screen bg-background">{children}</main>
+			</body>
+		</html>
+	);
 }
