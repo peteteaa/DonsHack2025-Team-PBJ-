@@ -14,6 +14,7 @@ import {BadRequestError, NotFoundError} from "../utils/errors";
 import {formatTranscript, mergeSegments} from "../utils/transcript";
 import UserModel from "../models/user.model";
 import {validateUserAndVideo} from "../utils/validate_video_and_user";
+import {getVideoTitle} from "../utils/get_video_title";
 
 const apiKey = EnvConfig().gemini.apiKey;
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -89,6 +90,7 @@ class VideoController {
                 }
                 res.status(StatusCodes.SUCCESS.code).json({
                     url: video.url,
+                    title: video.title,
                     transcript: video.transcript,
                     contentTable: video.contentTable,
                 });
@@ -128,8 +130,12 @@ Generate the ContentTable JSON based on this transcript.`,
             // Remove any markdown formatting or extra text
             const jsonStr = responseText.replace(/```json\n|\n```|```/g, "").trim();
             const contentTable: ContentTable = JSON.parse(jsonStr);
+
+            const title = await getVideoTitle(videoUrl);
+
             const createdVideo = await videoModel.create({
                 url: validatedUrl,
+                title: title,
                 transcript: mergedTranscript,
                 contentTable,
             });
@@ -141,6 +147,7 @@ Generate the ContentTable JSON based on this transcript.`,
 
             res.status(StatusCodes.SUCCESS.code).json({
                 url: createdVideo.url,
+                title: createdVideo.title,
                 transcript: createdVideo.transcript,
                 contentTable: createdVideo.contentTable,
             });

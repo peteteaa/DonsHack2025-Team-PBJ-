@@ -7,6 +7,7 @@ export interface User {
 export interface Video {
 	id: string;
 	url: string;
+	title: string;
 	transcript: TranscriptItem[];
 	contentTable: ContentTable;
 }
