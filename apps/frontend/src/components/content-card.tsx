@@ -53,7 +53,7 @@ const ContentCard = ({ contentTable }: ContentCardProps) => {
               placeholder="Write your notes here..."
             />
             <Button variant="outline" className="w-full">
-              Save Notes
+              Save Notes //ADD SAVE NOTES FUNCTIONALITY HERE
             </Button>
           </div>
         ) : (

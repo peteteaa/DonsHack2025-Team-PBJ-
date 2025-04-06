@@ -92,6 +92,15 @@ export default function YouTubePage() {
           </form>
         </CardContent>
       </Card>
+
+      <Card className="max-w-3xl mx-auto mt-6 dark:bg-gray-800 dark:text-white">
+        <CardHeader>
+          <CardTitle>Previously Visited Videos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Content will go here */}
+        </CardContent>
+      </Card>
     </div>
   );
 }
