@@ -206,7 +206,15 @@ Generate the ContentTable JSON based on this transcript.`,
                 return null;
             }
 
-            res.status(StatusCodes.SUCCESS.code).json(user.userVideos);
+            // populate the userVideos
+            user.populate({
+                path: 'userVideos.videoId',
+                model: 'Video'
+            }).then((populatedUser) => {
+                res.status(StatusCodes.SUCCESS.code).json(populatedUser.userVideos);
+            });
+
+
         })
     }
 }
