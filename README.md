@@ -38,13 +38,6 @@ Also, this project uses pnpm workspace, which allows you to manage dependencies 
      DB_URL= (URI of the database)
      TOKEN_KEY= (your token)
      ```
-
-   - Create `.env` and `.env.docker` files in `/apps/frontend` :
-
-     ```
-     FRONTEND_PORT= (number of the port to use, this is optional, by default 3000)
-     NEXT_PUBLIC_API_URL= (URL of the backend API)
-     ```
   
   - Create `.env` files in the root directory:
     by copying the `.env.example` file
@@ -132,10 +125,8 @@ This repo is deployed on Heroku using the heroku integrated GitHub deployment.
 ### Config Vars in Heroku:
 
 - BACKEND_PORT
-- FRONTEND_PORT
 - STYTCH_PROJECT_ID
 - STYTCH_SECRET
 - DB_URL
 - TOKEN_KEY
-- NEXT_PUBLIC_API_URL
 - GEMINI_API_KEY
