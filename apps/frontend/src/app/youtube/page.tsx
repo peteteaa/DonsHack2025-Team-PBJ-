@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Moon, Sun } from "lucide-react"; // Import the Sun and Moon icons
 import { useRouter } from "next/navigation";
+import type React from "react";
 import { useEffect, useState } from "react";
 
 export default function YouTubePage() {
@@ -58,21 +59,30 @@ export default function YouTubePage() {
 			});
 	}, []);
 
-	const extractVideoId = (url: string) => {
-		const regExp =
-			/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-		const match = url.match(regExp);
-		return match && match[2].length === 11 ? match[2] : null;
-	};
-
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		const id = extractVideoId(url);
-		if (id) {
-			router.push(`/video/${id}`);
-		} else {
-			setError("Invalid YouTube URL. Please enter a valid YouTube URL.");
-		}
+
+		// call the process api
+		await fetch("/api/video/process", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ videoUrl: url }),
+		})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error("Failed to process the video URL");
+				}
+				return response.json();
+			})
+			.then((data) => {
+				router.push(`/video/${data.videoId}`);
+			})
+			.catch((error) => {
+				console.error("Error processing video:", error);
+				setError("Failed to process the video URL");
+			});
 	};
 
 	return (
