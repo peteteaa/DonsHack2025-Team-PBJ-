@@ -3,6 +3,7 @@
 @email =
 @video_id =
 @note_id =
+@flashcard_id =
 
 ### test api ###
 GET {{base_url}}
@@ -34,6 +35,10 @@ Content-Type: application/json
     "videoUrl": "https://www.youtube.com/watch?v=yFLY0SVutgM"
 }
 
+### get all user videos ###
+GET {{base_url}}/video
+Content-Type: application/json
+
 ### get video ###
 GET {{base_url}}/video/{{video_id}}
 
@@ -58,4 +63,28 @@ Content-Type: application/json
 
 {
   "moment": 0
+}
+
+### get user flashcards for specific video ###
+GET {{base_url}}/video/{{video_id}}/flashcards
+Content-Type: application/json
+
+### create flashcard for specific video of user ###
+POST {{base_url}}/video/{{video_id}}/flashcards
+Content-Type: application/json
+
+{
+    "flashcard": {
+        "front": "What is the capital of France?",
+        "back": "Champs-Élysées"
+    }
+}
+
+### patch a flashcard for specific video of user ###
+PATCH {{base_url}}/video/{{video_id}}/flashcards/update/{{flashcard_id}}
+Content-Type: application/json
+
+{
+  "front": "What is the capital of France?",
+  "back": "Paris"
 }

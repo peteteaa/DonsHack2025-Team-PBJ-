@@ -12,6 +12,7 @@ import type { UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
 import { BadRequestError } from "../utils/errors";
 import { formatTranscript, mergeSegments } from "../utils/transcript";
+import UserModel from "../models/user.model";
 
 const apiKey = EnvConfig().gemini.apiKey;
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -182,6 +183,20 @@ Generate the ContentTable JSON based on this transcript.`,
 					message: "Internal server error",
 				});
 			});
+	}
+
+	getAllUserVideos(req: UserRequest, res: Response) {
+
+		UserModel.findOne({email: req.user?.email}).then((user) => {
+			if (!user) {
+				res.status(StatusCodes.NOT_FOUND.code).json({
+					message: "User not found",
+				});
+				return null;
+			}
+
+			res.status(StatusCodes.SUCCESS.code).json(user.userVideos);
+		})
 	}
 }
 
