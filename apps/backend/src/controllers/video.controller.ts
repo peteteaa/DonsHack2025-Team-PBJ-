@@ -14,11 +14,11 @@ import { EnvConfig } from "../config/env.config";
 import userModel from "../models/user.model";
 import UserModel from "../models/user.model";
 import videoModel from "../models/video.model";
-import type { UserRequest } from "../types";
+import type {RawTranscriptItem, UserRequest} from "../types";
 import StatusCodes from "../types/response-codes";
 import { BadRequestError, NotFoundError } from "../utils/errors";
 import { getVideoTitle } from "../utils/get_video_title";
-import { formatTranscript, mergeSegments } from "../utils/transcript";
+import {fetchTranscript, formatTranscript, mergeSegments} from "../utils/transcript";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
 
 const apiKey = EnvConfig().gemini.apiKey;
@@ -103,9 +103,9 @@ class VideoController {
 				return;
 			}
 
-			const transcript = await YoutubeTranscript.fetchTranscript(validatedUrl, {
-				lang: "en",
-			});
+			await fetchTranscript(new URL(validatedUrl).searchParams.get("v") as string)
+
+			const transcript: RawTranscriptItem[] = [];
 			console.log("Transcript fetched successfully");
 			const formattedTranscript = formatTranscript(transcript);
 			console.log("Transcript formatted successfully");
