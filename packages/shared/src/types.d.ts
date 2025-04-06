@@ -17,7 +17,7 @@ export interface UserNoteItem {
 	text: string;
 }
 
-type UserVideos = UserVideosItem[];
+export type UserVideos = UserVideosItem[];
 interface UserVideosItem {
 	flashCard: FlashCardItem[];
 	notes?: UserNotes;

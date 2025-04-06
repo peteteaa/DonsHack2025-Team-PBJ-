@@ -1,6 +1,6 @@
 @base_url = http://localhost:4000/api
 @token =
-@email =
+@email = 
 @video_id =
 @note_id =
 @flashcard_id =
@@ -87,4 +87,14 @@ Content-Type: application/json
 {
   "front": "What is the capital of France?",
   "back": "Paris"
+}
+
+### create quiz for specific video of user ###
+POST {{base_url}}/video/{{video_id}}/quiz
+Content-Type: application/json
+
+{
+    "start": 0,
+    "end": 320,
+    "type": "open"
 }
