@@ -32,7 +32,6 @@
     "next": "15.2.4",
     "nodemon": "^3.1.9",
     "stytch": "^12.13.0",
-    "youtube-transcript": "^1.2.1",
     "youtubei.js": "^13.3.0",
     "zod": "^3.24.2"
   },

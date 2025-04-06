@@ -54,9 +54,6 @@ importers:
       stytch:
         specifier: ^12.13.0
         version: 12.13.0
-      youtube-transcript:
-        specifier: ^1.2.1
-        version: 1.2.1
       youtubei.js:
         specifier: ^13.3.0
         version: 13.3.0
@@ -2903,10 +2900,6 @@ packages:
   yocto-queue@0.1.0:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
-
-  youtube-transcript@1.2.1:
-    resolution: {integrity: sha512-TvEGkBaajKw+B6y91ziLuBLsa5cawgowou+Bk0ciGpjELDfAzSzTGXaZmeSSkUeknCPpEr/WGApOHDwV7V+Y9Q==}
-    engines: {node: '>=18.0.0'}
 
   youtubei.js@13.3.0:
     resolution: {integrity: sha512-tbl7rxltpgKoSsmfGUe9JqWUAzv6HFLqrOn0N85EbTn5DLt24EXrjClnXdxyr3PBARMJ3LC4vbll100a0ABsYw==}
@@ -5908,8 +5901,6 @@ snapshots:
   yn@3.1.1: {}
 
   yocto-queue@0.1.0: {}
-
-  youtube-transcript@1.2.1: {}
 
   youtubei.js@13.3.0:
     dependencies:

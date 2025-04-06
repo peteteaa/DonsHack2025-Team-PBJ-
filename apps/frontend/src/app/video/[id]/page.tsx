@@ -9,11 +9,11 @@ import {
 	AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
-import { Home as HomeIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { VideoPage as VideoPageType } from "@shared/types";
+import { Home as HomeIcon } from "lucide-react";
 import { Maximize2, Minimize2 } from "lucide-react";
-import {useParams, useRouter} from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 // YouTube IFrame API types
@@ -336,10 +336,11 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 						<div className="flex gap-4">
 							<ThemeToggle />
 							<Button
-								onClick={() => router.push('/')}
+								onClick={() => router.push("/")}
 								size="icon"
 								variant="outline"
-							><HomeIcon />
+							>
+								<HomeIcon />
 							</Button>
 						</div>
 					</div>
