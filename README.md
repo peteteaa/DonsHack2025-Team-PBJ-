@@ -135,3 +135,10 @@ This repo is deployed on Heroku using the heroku integrated GitHub deployment.
 - TOKEN_KEY
 - API_URL
 - GEMINI_API_KEY
+
+### Docker Hub
+- pull image from docker hub:
+
+```bash
+docker pull sihingbenni/dons-flow:latest
+```
