@@ -37,6 +37,7 @@ interface ContentTableItem {
 }
 
 export interface TranscriptItem {
+	id: number;
 	start: number;
 	end: number;
 	text: string;
@@ -60,9 +61,4 @@ interface ContentTableItem {
 	chapter: string;
 	summary: string;
 	transcript: TranscriptItem[];
-}
-interface TranscriptItem {
-	end: number;
-	start: number;
-	text: string;
 }

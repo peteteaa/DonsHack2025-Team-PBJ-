@@ -37,7 +37,8 @@ export function formatTranscript(segments: any): TranscriptItem[] {
 	 */
 
 	return segments.map(
-		(item: TranscriptSegment): TranscriptItem => ({
+		(item: TranscriptSegment, index: number): TranscriptItem => ({
+			id: index,
 			start: Math.floor(Number.parseInt(item.start_ms) / 1000),
 			end: Math.floor(Number.parseInt(item.end_ms) / 1000),
 			text: item.snippet.text || "",

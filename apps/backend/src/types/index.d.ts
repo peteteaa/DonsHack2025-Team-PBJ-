@@ -1,4 +1,4 @@
-import type { TranscriptItem, User } from "@shared/types";
+import type { User } from "@shared/types";
 import type { Request } from "express";
 
 export type InputToken = {
@@ -9,9 +9,9 @@ export interface UserRequest extends Request {
 	user?: User;
 }
 
-
-interface RawTranscriptItem {
-	duration: number;
-	offset: number;
-	text: string;
+export interface GeminiResponse {
+	chapter: string;
+	summary: string;
+	transcript_start_id: number;
+	transcript_end_id: number;
 }
