@@ -10,7 +10,7 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "lucide-react"; // Import the Sun and Moon icons
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 

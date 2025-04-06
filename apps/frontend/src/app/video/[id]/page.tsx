@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { VideoPage as VideoPageType } from "@shared/types";
 
 // YouTube IFrame API types
 declare global {
@@ -22,9 +23,10 @@ declare global {
 			Player: new (
 				elementId: string,
 				config: {
+
+					height: string;
+					width: string;
 					videoId: string;
-					height?: string | number;
-					width?: string | number;
 					playerVars?: {
 						autoplay?: number;
 						modestbranding?: number;
@@ -35,7 +37,7 @@ declare global {
 					};
 				},
 			) => YouTubePlayer;
-			PlayerState: {
+			PlayerState: {ENDED: number;
 				PLAYING: number;
 			};
 		};
@@ -96,6 +98,11 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 		type: "multiple",
 		Quiz: [],
 	});
+	const [videoPageData, setVideoPageData] = useState<VideoPageType | null>(
+		null
+	);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
 	const [questionType, setQuestionType] = useState<QuestionType>("multiple");
 
@@ -258,7 +265,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 	};
 
 	useEffect(() => {
-		// Load YouTube API
+		if (!videoPageData) return;// Load YouTube API
 		const tag = document.createElement("script");
 		tag.src = "https://www.youtube.com/iframe_api";
 		const firstScriptTag = document.getElementsByTagName("script")[0];
@@ -266,265 +273,310 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 
 		// Initialize player when API is ready
 		window.onYouTubeIframeAPIReady = () => {
-			const newPlayer = new window.YT.Player("youtube-player", {
-				height: "100%",
-				width: "100%",
-				videoId: id,
-				playerVars: {
-					autoplay: 0,
-					modestbranding: 1,
-					rel: 0,
-				},
-			});
-			setPlayer(newPlayer);
+			if (!videoPageData?.videoId?.url) {
+				return;
+			}
+			const videoId = videoPageData.videoId.url.split("v=")[1];
+
+			try {
+				const newPlayer = new window.YT.Player("youtube-player", {
+					height: "100%",
+					width: "100%",
+					videoId: videoId,
+					playerVars: {
+						autoplay: 0,
+						modestbranding: 1,
+						rel: 0,
+					},
+					events: {
+						onStateChange: (event: { data: number }) => {
+							console.log("Player state changed:", event.data);
+						},
+					},
+				});
+				setPlayer(newPlayer);
+			} catch (error) {
+				console.error("Error creating YouTube player:", error);
+			}
 		};
+	}, [videoPageData]);
+
+	useEffect(() => {
+		const fetchVideoPage = async () => {
+			try {
+				setIsLoading(true);
+				setError(null);
+				const response = await fetch(`/api/video/${id}`);
+				if (!response.ok) {
+					throw new Error("Failed to fetch video page data");
+				}
+				const data = await response.json();
+				setVideoPageData(data);
+			} catch (err) {
+				setError(err instanceof Error ? err.message : "An error occurred");
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		if (id) {
+			fetchVideoPage();
+		}
 	}, [id]);
 
 	return (
 		<div className="container mx-auto py-8 px-4">
-			<div className="flex justify-between items-center mb-8">
-				<h1 className="text-2xl font-bold text-primary">DonsFlow</h1>
-				<div className="flex items-center gap-4">
-					<ThemeToggle />
-					<Button
-						onClick={() => setIsFullscreen(!isFullscreen)}
-						size="icon"
-						variant="outline"
-					>
-						{isFullscreen ? (
-							<Minimize2 className="h-4 w-4" />
-						) : (
-							<Maximize2 className="h-4 w-4" />
-						)}
-					</Button>
-				</div>
-			</div>
-			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-				<div className="lg:col-span-2">
-					<Card className="transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 group">
-						<CardHeader className="pb-2">
-							<CardTitle className="group-hover:text-primary group-hover:brightness-125">
-								{currentTimestamp !== null && (
-									<span className="text-sm font-normal text-muted-foreground">
-										Current Time: {formatTimestamp(currentTimestamp)}
-									</span>
-								)}
-							</CardTitle>
-						</CardHeader>
-						<CardContent className="p-0">
-							<div className="relative pt-[56.25%]">
-								<div
-									className="absolute inset-0 w-full h-full"
-									id="youtube-player"
-								/>
-							</div>
-						</CardContent>
-					</Card>
+			{isLoading && <div>Loading...</div>}
+			{error && <div className="text-red-500">Error: {error}</div>}
+			{videoPageData && (
+				<>
+					<div className="flex justify-between items-center mb-8">
+						<h1 className="text-3xl font-bold">
+							{videoPageData.videoId.title}
+						</h1>
+						<div className="flex gap-4">
+							<ThemeToggle />
+							<Button
+								variant="outline"
+								size="icon"
+								onClick={() => setIsFullscreen(!isFullscreen)}
+							>
+								{isFullscreen ? <Minimize2 /> : <Maximize2 />}
+							</Button>
+						</div>
+					</div>
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+						<div className="lg:col-span-2">
+							<Card className="transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 group">
+								<CardHeader className="pb-2">
+									<CardTitle className="group-hover:text-primary group-hover:brightness-125">
+										{currentTimestamp !== null && (
+											<span className="text-sm font-normal text-muted-foreground">
+												Current Time: {formatTimestamp(currentTimestamp)}
+											</span>
+										)}
+									</CardTitle>
+								</CardHeader>
+								<CardContent className="p-0">
+									<div className="relative pt-[56.25%]">
+										<div
+											className="absolute inset-0 w-full h-full"
+											id="youtube-player"
+										/>
+									</div>
+								</CardContent>
+							</Card>
 
-					{/* Transcript Dropdown */}
-					<Card
-						className={`mt-6 transition-all duration-200 ${
-							isFullscreen
-								? "fixed inset-0 z-50 m-0 max-h-none rounded-none"
-								: "max-h-[400px] overflow-auto hover:-translate-y-1 hover:bg-background/40"
-						}`}
-					>
-						<CardHeader className="pb-2 flex flex-row items-center justify-between">
-							<CardTitle className="group-hover:text-primary group-hover:brightness-125">
-								Video Transcript
-							</CardTitle>
-							<div className="flex items-center gap-2">
-								<Button
-									className="text-sm"
-									onClick={() => {
-										setShowQuiz(!showQuiz);
-										setSelectedAnswer(null);
-									}}
-									variant="ghost"
-								>
-									{showQuiz ? "View Transcript" : "Take Quiz"}
-								</Button>
-								<button
-									aria-label={
-										isFullscreen ? "Exit fullscreen" : "Enter fullscreen"
-									}
-									className="p-1 rounded-md hover:bg-muted"
-									onClick={() => setIsFullscreen(!isFullscreen)}
-								>
-									{isFullscreen ? (
-										<Minimize2 className="h-5 w-5" />
-									) : (
-										<Maximize2 className="h-5 w-5" />
-									)}
-								</button>
-							</div>
-						</CardHeader>
-						<CardContent>
-							{showQuiz ? (
-								<div className="space-y-4">
-									<div className="p-4 border rounded-lg">
-										{quizData.Quiz.length === 0 ? (
-											<div>
-												<p className="mb-4">No questions available yet.</p>
-												<div className="flex items-center gap-4">
-													<div className="border rounded-lg p-1 flex gap-1">
-														<Button
-															className="text-xs"
-															onClick={() => setQuestionType("multiple")}
-															size="sm"
-															variant={
-																questionType === "multiple"
-																	? "default"
-																	: "ghost"
-															}
-														>
-															Multiple Choice
-														</Button>
-														<Button
-															className="text-xs"
-															onClick={() => setQuestionType("open")}
-															size="sm"
-															variant={
-																questionType === "open" ? "default" : "ghost"
-															}
-														>
-															Short Response
-														</Button>
-													</div>
-													<Button
-														className="text-sm"
-														onClick={() => handleGenerateQuestions()}
-														variant="default"
-													>
-														Generate Questions
-													</Button>
-												</div>
-											</div>
-										) : (
-											<>
-												<div className="flex justify-between items-center mb-4">
-													<div className="flex items-center gap-4">
-														<Button
-															className="text-sm"
-															onClick={() => {
-																setQuizData({ type: "multiple", Quiz: [] });
-																setCurrentQuestionIndex(0);
-																setSelectedAnswer(null);
-																setShowAnswer(false);
-															}}
-															variant="default"
-														>
-															Reset Questions
-														</Button>
-														<h3 className="text-lg font-semibold ml-4">
-															{quizData.Quiz[currentQuestionIndex].question}
-														</h3>
-													</div>
-												</div>
-												<div className="space-y-2">
-													{questionType === "multiple" &&
-													isMultipleChoice(
-														quizData.Quiz[currentQuestionIndex],
-													) ? (
-														quizData.Quiz[currentQuestionIndex].options.map(
-															(option: string, index: number) => {
-																const currentQuestion =
-																	quizData.Quiz[currentQuestionIndex];
-																const isCorrect =
-																	isMultipleChoice(currentQuestion) &&
-																	selectedAnswer === option &&
-																	selectedAnswer === currentQuestion.correct[0];
-																const isIncorrect =
-																	isMultipleChoice(currentQuestion) &&
-																	selectedAnswer === option &&
-																	selectedAnswer !== currentQuestion.correct[0];
-
-																return (
-																	<Button
-																		className={`w-full justify-start ${
-																			isCorrect
-																				? "bg-green-500 hover:bg-green-600"
-																				: isIncorrect
-																					? "bg-red-500 hover:bg-red-600"
-																					: ""
-																		}`}
-																		disabled={false}
-																		key={index}
-																		onClick={() => handleAnswerSelect(option)}
-																		variant={
-																			selectedAnswer === option
-																				? "default"
-																				: "outline"
-																		}
-																	>
-																		{option}
-																	</Button>
-																);
-															},
-														)
-													) : (
-														<div className="space-y-2">
-															<textarea
-																className="w-full h-32 p-2 border rounded-md"
-																onChange={(e) =>
-																	setSelectedAnswer(e.target.value)
-																}
-																placeholder="Type your answer here..."
-																value={selectedAnswer || ""}
-															/>
-															<div className="flex gap-2">
+							{/* Transcript Dropdown */}
+							<Card
+								className={`mt-6 transition-all duration-200 ${
+									isFullscreen
+										? "fixed inset-0 z-50 m-0 max-h-none rounded-none"
+										: "max-h-[400px] overflow-auto hover:-translate-y-1 hover:bg-background/40"
+								}`}
+							>
+								<CardHeader className="pb-2 flex flex-row items-center justify-between">
+									<CardTitle className="group-hover:text-primary group-hover:brightness-125">
+										Video Transcript
+									</CardTitle>
+									<div className="flex items-center gap-2">
+										<Button
+											className="text-sm"
+											onClick={() => {
+												setShowQuiz(!showQuiz);
+												setSelectedAnswer(null);
+											}}
+											variant="ghost"
+										>
+											{showQuiz ? "View Transcript" : "Take Quiz"}
+										</Button>
+										<button
+											aria-label={
+												isFullscreen ? "Exit fullscreen" : "Enter fullscreen"
+											}
+											className="p-1 rounded-md hover:bg-muted"
+											onClick={() => setIsFullscreen(!isFullscreen)}
+											type="button"
+										>
+											{isFullscreen ? (
+												<Minimize2 className="h-5 w-5" />
+											) : (
+												<Maximize2 className="h-5 w-5" />
+											)}
+										</button>
+									</div>
+								</CardHeader>
+								<CardContent>
+									{showQuiz ? (
+										<div className="space-y-4">
+											<div className="p-4 border rounded-lg">
+												{quizData.Quiz.length === 0 ? (
+													<div>
+														<p className="mb-4">No questions available yet.</p>
+														<div className="flex items-center gap-4">
+															<div className="border rounded-lg p-1 flex gap-1">
 																<Button
-																	className="w-full"
-																	disabled={!selectedAnswer || showAnswer}
-																	onClick={handleShortAnswerSubmit}
-																	variant="outline"
+																	className="text-xs"
+																	onClick={() => setQuestionType("multiple")}
+																	size="sm"
+																	variant={
+																		questionType === "multiple"
+																			? "default"
+																			: "ghost"
+																	}
 																>
-																	Check Answer
+																	Multiple Choice
 																</Button>
-																{showAnswer &&
-																	currentQuestionIndex <
-																		quizData.Quiz.length - 1 && (
+																<Button
+																	className="text-xs"
+																	onClick={() => setQuestionType("open")}
+																	size="sm"
+																	variant={
+																		questionType === "open"
+																			? "default"
+																			: "ghost"
+																	}
+																>
+																	Short Response
+																</Button>
+															</div>
+															<Button
+																className="text-sm"
+																onClick={() => handleGenerateQuestions()}
+																variant="default"
+															>
+																Generate Questions
+															</Button>
+														</div>
+													</div>
+												) : (
+													<>
+														<div className="flex justify-between items-center mb-4">
+															<div className="flex items-center gap-4">
+																<Button
+																	className="text-sm"
+																	onClick={() => {
+																		setQuizData({ type: "multiple", Quiz: [] });
+																		setCurrentQuestionIndex(0);
+																		setSelectedAnswer(null);
+																		setShowAnswer(false);
+																	}}
+																	variant="default"
+																>
+																	Reset Questions
+																</Button>
+																<h3 className="text-lg font-semibold ml-4">
+																	{quizData.Quiz[currentQuestionIndex].question}
+																</h3>
+															</div>
+														</div>
+														<div className="space-y-2">
+															{questionType === "multiple" &&
+															isMultipleChoice(
+																quizData.Quiz[currentQuestionIndex]
+															) ? (
+																quizData.Quiz[currentQuestionIndex].options.map(
+																	(option: string) => {
+																		const currentQuestion =
+																			quizData.Quiz[currentQuestionIndex];
+																		const isCorrect =
+																			isMultipleChoice(currentQuestion) &&
+																			selectedAnswer === option &&
+																			selectedAnswer ===
+																				currentQuestion.correct[0];
+																		const isIncorrect =
+																			isMultipleChoice(currentQuestion) &&
+																			selectedAnswer === option &&
+																			selectedAnswer !==
+																				currentQuestion.correct[0];
+
+																		return (
+																			<Button
+																				className={`w-full justify-start ${
+																					isCorrect
+																						? "bg-green-500 hover:bg-green-600"
+																						: isIncorrect
+																						? "bg-red-500 hover:bg-red-600"
+																						: ""
+																				}`}
+																				disabled={false}
+																				key={option}
+																				onClick={() =>
+																					handleAnswerSelect(option)
+																				}
+																				variant={
+																					selectedAnswer === option
+																						? "default"
+																						: "outline"
+																				}
+																			>
+																				{option}
+																			</Button>
+																		);
+																	}
+																)
+															) : (
+																<div className="space-y-2">
+																	<textarea
+																		className="w-full h-32 p-2 border rounded-md"
+																		onChange={(e) =>
+																			setSelectedAnswer(e.target.value)
+																		}
+																		placeholder="Type your answer here..."
+																		value={selectedAnswer || ""}
+																	/>
+																	<div className="flex gap-2">
 																		<Button
 																			className="w-full"
-																			onClick={() => {
-																				setCurrentQuestionIndex(
-																					(prevIndex) => prevIndex + 1,
-																				);
-																				setSelectedAnswer(null);
-																				setShowAnswer(false);
-																			}}
-																			variant="default"
+																			disabled={!selectedAnswer || showAnswer}
+																			onClick={handleShortAnswerSubmit}
+																			variant="outline"
 																		>
-																			Next Question
+																			Check Answer
 																		</Button>
-																	)}
-															</div>
-															{showAnswer &&
-																isOpenResponse(
-																	quizData.Quiz[currentQuestionIndex],
-																) && (
-																	<div className="mt-4 p-4 bg-muted rounded-lg">
-																		<p className="font-semibold">
-																			Sample Answer:
-																		</p>
-																		<p>
-																			{
-																				quizData.Quiz[currentQuestionIndex]
-																					.answer
-																			}
-																		</p>
+																		{showAnswer &&
+																			currentQuestionIndex <
+																				quizData.Quiz.length - 1 && (
+																				<Button
+																					className="w-full"
+																					onClick={() => {
+																						setCurrentQuestionIndex(
+																							(prevIndex) => prevIndex + 1
+																						);
+																						setSelectedAnswer(null);
+																						setShowAnswer(false);
+																					}}
+																					variant="default"
+																				>
+																					Next Question
+																				</Button>
+																			)}
 																	</div>
-																)}
+																	{showAnswer &&
+																		isOpenResponse(
+																			quizData.Quiz[currentQuestionIndex]
+																		) && (
+																			<div className="mt-4 p-4 bg-muted rounded-lg">
+																				<p className="font-semibold">
+																					Sample Answer:
+																				</p>
+																				<p>
+																					{
+																						quizData.Quiz[currentQuestionIndex]
+																							.answer
+																					}
+																				</p>
+																			</div>
+																		)}
+																</div>
+															)}
 														</div>
-													)}
-												</div>
-												{selectedAnswer &&
-													questionType === "multiple" &&
-													isMultipleChoice(
-														quizData.Quiz[currentQuestionIndex],
-													) && (
-														<>
-															{selectedAnswer ===
+														{selectedAnswer &&
+															questionType === "multiple" &&
+															isMultipleChoice(
+																quizData.Quiz[currentQuestionIndex]
+															) &&
+															selectedAnswer ===
 																quizData.Quiz[currentQuestionIndex]
 																	.correct[0] && (
 																<div className="mt-4 p-4 bg-muted rounded-lg">
@@ -537,53 +589,55 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 																	</p>
 																</div>
 															)}
-														</>
-													)}
-											</>
-										)}
-									</div>
-								</div>
-							) : (
-								<Accordion className="w-full" collapsible type="single">
-									{contentTable.map(
-										(chapter: ChapterContent, index: number) => (
-											<AccordionItem key={index} value={`chapter-${index}`}>
-												<AccordionTrigger>
-													<div className="flex flex-col items-start text-left">
-														<div className="font-semibold">
-															{chapter.chapter}
-														</div>
-													</div>
-												</AccordionTrigger>
-												<AccordionContent
-													className={
-														isFullscreen
-															? "max-h-none"
-															: "max-h-60 overflow-y-auto"
-													}
+													</>
+												)}
+											</div>
+										</div>
+									) : (
+										<Accordion className="w-full" collapsible type="single">
+											{contentTable.map((chapter: ChapterContent) => (
+												<AccordionItem
+													key={chapter.chapter}
+													value={chapter.chapter}
 												>
-													<div className="space-y-4">
-														{chapter.transcript.map(
-															(item: TranscriptItem, idx: number) => (
-																<div className="flex gap-3 text-sm" key={idx}>
-																	<span className="text-muted-foreground whitespace-nowrap">
-																		{formatTimestamp(item.start)} -{" "}
-																		{formatTimestamp(item.end)}
-																	</span>
-																	<p>{item.text}</p>
-																</div>
-															),
-														)}
-													</div>
-												</AccordionContent>
-											</AccordionItem>
-										),
+													<AccordionTrigger>
+														<div className="flex flex-col items-start text-left">
+															<div className="font-semibold">
+																{chapter.chapter}
+															</div>
+														</div>
+													</AccordionTrigger>
+													<AccordionContent
+														className={
+															isFullscreen
+																? "max-h-none"
+																: "max-h-60 overflow-y-auto"
+														}
+													>
+														<div className="space-y-4">
+															{chapter.transcript.map(
+																(item: TranscriptItem) => (
+																	<div
+																		className="flex gap-3 text-sm"
+																		key={item.text}
+																	>
+																		<span className="text-muted-foreground whitespace-nowrap">
+																			{formatTimestamp(item.start)} -{" "}
+																			{formatTimestamp(item.end)}
+																		</span>
+																		<p>{item.text}</p>
+																	</div>
+																)
+															)}
+														</div>
+													</AccordionContent>
+												</AccordionItem>
+											))}
+										</Accordion>
 									)}
-								</Accordion>
-							)}
-						</CardContent>
-					</Card>
-				</div>
+								</CardContent>
+							</Card>
+						</div>
 
 				<div className="flex flex-col lg:flex-row gap-6">
 					<div className={`w-full ${isFullscreen ? "hidden" : ""}`}>
@@ -594,86 +648,35 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 					</div>
 				</div>
 			</div>
+		</>
+			)}
 		</div>
 	);
 };
 
 export default function Page() {
-	// Use the provided content table
-	const contentTable = [
-		{
-			chapter: "Function vs. Class for Simple Operations",
-			summary:
-				"Avoid using a class when a simple function will suffice. Classes should be reserved for situations with multiple methods, data access needs, and multiple instances. Using functions simplifies the code and reduces boilerplate.",
-			transcript: [
-				{
-					end: 79.88,
-					start: 0.12,
-					text: "is your objectoriented python code turning into unmanageable spaghetti today I&amp;#39;ll cover bad practices to avoid at all costs and what to do instead ...",
-				},
-			],
-		},
-		{
-			chapter: "Modules vs. Classes with Static Methods",
-			summary:
-				"Instead of using classes with static methods for utility functions, leverage Python modules. Modules provide a cleaner way to organize code without the overhead of class instantiation or static method calls.",
-			transcript: [
-				{
-					end: 387.599,
-					start: 79.92,
-					text: "needs like so this has simplified the code a lot let me run this just to make sure it works and it does this is the data that it has loaded from the file if you&amp;#39;re using classes a lot in this way just containers for methods that often adds unnecessary complexity and boiler plate code because then you have to create an instance of the class to call that method ...",
-				},
-			],
-		},
-		{
-			chapter: "Favor Composition over Inheritance",
-			summary:
-				"Avoid overly complex inheritance structures. Instead of using inheritance to define roles, consider using composition with role classes or enums to reduce coupling and improve code maintainability. Flattening hierarchies simplifies the code.",
-			transcript: [
-				{
-					end: 563.68,
-					start: 387.599,
-					text: "the third bad practice is creating overly complex inheritance structures often people try to avoid or decouple code by using inheritance and this often just makes things worse ...",
-				},
-			],
-		},
-		{
-			chapter: "Rely on Abstractions (Dependency Injection and Protocols)",
-			summary:
-				"Avoid directly instantiating concrete classes within methods. Instead, use dependency injection to pass instances and leverage abstractions like protocols or abstract base classes to decouple code, improve flexibility, and facilitate testing by enabling the use of mock objects.",
-			transcript: [
-				{
-					end: 626.72,
-					start: 563.68,
-					text: "the fourth bad practice that you don&amp;#39;t rely on abstractions basically directly calling methods constructing objects from other classes Within a method or a function here you see an example of that I have an order class that has a customer email a product ID and a quantity very basic and they also have an SMTP email service which is used to connect to a server and then sending an email to a customer ...",
-				},
-			],
-		},
-		{
-			chapter: "Importance of Encapsulation",
-			summary:
-				"Implement encapsulation to hide implementation details and maintain internal consistency. Use methods and properties to control access and modification of internal variables. However, for simple data-focused classes (data classes), direct attribute access can be more practical.",
-			transcript: [
-				{
-					end: 1132.679,
-					start: 1002.88,
-					text: "the fifth bad practice is do not have encapsulation if you have a class in this case there&amp;#39;s a bank account class that has a balance and the way that we work with the bank account in this example is that we directly modify the balance we subtract 50 we add 100 encapsulation means that you hide implementation details from the outside world this is what methods properties allow you to do in a class ...",
-				},
-			],
-		},
-		{
-			chapter: "Avoid Overusing Mixins (Favor Composition)",
-			summary:
-				"Overusing mixins leads to complicated and hard-to-trace class hierarchies. Consider using composition instead. If classes are simple, functions might be an even better alternative.",
-			transcript: [
-				{
-					end: 1483.64,
-					start: 1132.679,
-					text: "and by the way if you enjoy these types of discussions make sure to join my Discord server at discord. iron. codes it&amp;#39;s a really awesome Community love for you to join the final bad practice I want to talk about is mixin yes overusing mixins to add functionality to existing classes can really lead to complicated and hard to trace class hierarchies for example here I have an order class I have a log mix in which has a log methods I have a save mix in which has a save method and then I&amp;#39;m mixing in those features into other classes like processing in order and counseling an order ...",
-				},
-			],
-		},
-	];
+	const [videoPageData, setVideoPageData] = useState<VideoPageType | null>(
+		null
+	);
+	const params = useParams();
+	const id = params?.id as string;
 
-	return <VideoPage contentTable={contentTable} />;
+	useEffect(() => {
+		const fetchVideoPage = async () => {
+			try {
+				const response = await fetch(`/api/video/${id}`);
+				if (!response.ok) {
+					throw new Error("Failed to fetch video page data");
+				}
+				const data = await response.json();
+				setVideoPageData(data);
+			} catch (error) {
+				console.error("Error fetching video page:", error);
+			}
+		};
+
+		fetchVideoPage();
+	}, [id]);
+
+	return <VideoPage contentTable={videoPageData?.videoId.contentTable ?? []} />;
 }

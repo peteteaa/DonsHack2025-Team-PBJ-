@@ -70,8 +70,11 @@ const ContentCard = ({ contentTable, currentTimestamp }: ContentCardProps) => {
 			<CardContent>
 				<div className="flex gap-6">
 					<div className={`${isNotesView ? "hidden" : "w-2/3"} space-y-4`}>
-						{contentTable.map((chapter, index) => (
-							<div className="border-b pb-4 last:border-0" key={index}>
+						{contentTable.map((chapter) => (
+							<div
+								className="border-b pb-4 last:border-0"
+								key={chapter.chapter}
+							>
 								<h3 className="text-base font-semibold mb-1">
 									{chapter.chapter}
 								</h3>
@@ -102,8 +105,8 @@ const ContentCard = ({ contentTable, currentTimestamp }: ContentCardProps) => {
 							</div>
 						)}
 						<div className="space-y-2">
-							{savedNotes.map((note, index) => (
-								<div className="p-2 border rounded" key={index}>
+							{savedNotes.map((note) => (
+								<div className="p-2 border rounded" key={note.videoTime}>
 									<p className="text-sm">{note.text}</p>
 									{note.videoTime !== null && (
 										<p className="text-xs text-muted-foreground mt-1">
