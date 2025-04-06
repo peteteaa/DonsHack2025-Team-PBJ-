@@ -1,6 +1,7 @@
 import { Router } from "express";
-import auth from "./auth";
-import video from "./video";
+import authMiddleware from "../middlewares/auth";
+import authRoutes from "./auth";
+import videoRoutes from "./video";
 
 const router = Router();
 
@@ -8,7 +9,7 @@ router.get("/", (_req, res) => {
 	res.json({ name: "DonsFlow" });
 });
 
-router.use("/auth", auth);
-router.use("/video", video);
+router.use("/auth", authRoutes);
+router.use("/video", authMiddleware, videoRoutes);
 
 export default router;
