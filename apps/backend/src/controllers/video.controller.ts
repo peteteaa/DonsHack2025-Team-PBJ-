@@ -94,6 +94,7 @@ class VideoController {
 					);
 				}
 				res.status(StatusCodes.SUCCESS.code).json({
+					videoId: video._id,
 					url: video.url,
 					title: video.title,
 					transcript: video.transcript,
@@ -151,6 +152,7 @@ Generate the ContentTable JSON based on this transcript.`,
 			);
 
 			res.status(StatusCodes.SUCCESS.code).json({
+				videoId: createdVideo._id,
 				url: createdVideo.url,
 				title: createdVideo.title,
 				transcript: createdVideo.transcript,
