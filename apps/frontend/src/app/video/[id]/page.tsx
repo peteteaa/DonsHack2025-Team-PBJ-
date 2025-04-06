@@ -166,7 +166,7 @@ const CONTENT_TABLE = [
 
 export default function VideoPage() {
   const params = useParams()
-  const id = params.id as string
+  const id = params?.id as string
   const [contentTable] = useState(CONTENT_TABLE)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
