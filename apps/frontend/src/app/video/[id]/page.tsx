@@ -258,6 +258,7 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 				...videoPageData,
 				notes: updatedNotes,
 			});
+			updatedNotes.sort((a, b) => a.moment - b.moment);
 			setNotes(updatedNotes);
 			setNote("");
 		} catch (error) {
@@ -320,7 +321,10 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 				}
 				const data = await response.json();
 				setVideoPageData(data);
-				setNotes(data.notes);
+				const notes = data.notes.sort(
+					(a: UserNoteItem, b: UserNoteItem) => a.moment - b.moment
+				);
+				setNotes(notes);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "An error occurred");
 			} finally {
