@@ -37,10 +37,9 @@ Also, this project uses pnpm workspace, which allows you to manage dependencies 
      STYTCH_SECRET= (your stytch secret)
      DB_URL= (URI of the database)
      TOKEN_KEY= (your token)
+     GEMINI_API_KEY= (your gemini api key)
+     API_URL= (URI of the API)
      ```
-  
-  - Create `.env` files in the root directory:
-    by copying the `.env.example` file
 
 ### Running the Application
 
@@ -129,4 +128,5 @@ This repo is deployed on Heroku using the heroku integrated GitHub deployment.
 - STYTCH_SECRET
 - DB_URL
 - TOKEN_KEY
+- API_URL
 - GEMINI_API_KEY
