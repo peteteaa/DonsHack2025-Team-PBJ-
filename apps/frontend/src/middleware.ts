@@ -6,7 +6,6 @@ export async function middleware(request: NextRequest) {
 
 	// Don't protect these paths
 	if (
-		request.nextUrl.pathname.startsWith("/auth/status") ||
 		request.nextUrl.pathname.startsWith("/authenticate") ||
 		request.nextUrl.pathname.startsWith("/_next") ||
 		request.nextUrl.pathname.startsWith("/api")
