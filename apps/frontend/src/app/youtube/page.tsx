@@ -22,6 +22,7 @@ export default function YouTubePage() {
 	const [isDarkMode, setIsDarkMode] = useState(false);
 	const [videos, setVideos] = useState([]);
 	const [loading, setLoading] = useState(true);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	// Handle theme switching based on the isDarkMode state
 	useEffect(() => {
@@ -61,6 +62,7 @@ export default function YouTubePage() {
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
+		setIsSubmitting(true);
 
 		// call the process api
 		await fetch("/api/video/process", {
@@ -82,7 +84,9 @@ export default function YouTubePage() {
 			.catch((error) => {
 				console.error("Error processing video:", error);
 				setError("Failed to process the video URL");
-			});
+				// if there is an error then you can try again
+				setIsSubmitting(false);
+			})
 	};
 
 	return (
@@ -120,7 +124,9 @@ export default function YouTubePage() {
 								type="text"
 								value={url}
 							/>
-							<Button type="submit">Load Video</Button>
+							<Button type="submit" disabled={isSubmitting}>
+								{isSubmitting ? "Loading..." : "Load Video"}
+							</Button>
 						</div>
 						{error && (
 							<Alert variant="destructive">
