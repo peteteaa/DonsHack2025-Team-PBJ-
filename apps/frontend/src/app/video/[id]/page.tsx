@@ -7,6 +7,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Maximize2, Minimize2 } from "lucide-react"
 import ContentCard from "@/components/content-card"
+import { Button } from "@/components/ui/button"
 
 // Hardcoded content for testing
 const CONTENT_TABLE = [
@@ -169,6 +170,105 @@ export default function VideoPage() {
   const id = params?.id as string
   const [contentTable] = useState(CONTENT_TABLE)
   const [isFullscreen, setIsFullscreen] = useState(false)
+  const [showQuiz, setShowQuiz] = useState(false)
+  const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
+
+  const [quizData, setQuizData] = useState<{
+    type: string;
+    Quiz: Array<{
+      question: string;
+      options: string[];
+      correct: string[];
+      explanation: string;
+    }>;
+  }>({
+    type: "multiple",
+    Quiz: []
+  })
+
+  const handleGenerateQuestions = () => {
+    setQuizData({//jose set the quiz endpoint here
+      type: "multiple",
+      Quiz: [
+        {
+          question: "What is the primary reason for using functions over classes in simple scenarios?",
+          options: [
+            "To reduce complexity and boilerplate",
+            "To increase flexibility and reusability",
+            "To handle multi-threading operations"
+          ],
+          correct: [
+            "To reduce complexity and boilerplate"
+          ],
+          explanation: "Functions are preferred in simple scenarios because they help reduce unnecessary complexity and boilerplate that comes with using classes. Classes are best suited for situations that require multiple methods, data access, and multiple instances."
+        },
+        {
+          question: "Which of the following is true about immutability in Python?",
+          options: [
+            "Immutable objects cannot be modified once created.",
+            "Immutability allows an object to change its state after creation.",
+            "Immutability applies only to built-in types like lists."
+          ],
+          correct: [
+            "Immutable objects cannot be modified once created."
+          ],
+          explanation: "Immutability refers to objects whose state cannot be changed once they are created. Examples of immutable types in Python include tuples, strings, and integers."
+        },
+        {
+          question: "What does the 'self' keyword represent in a Python class?",
+          options: [
+            "It refers to a method inside the class.",
+            "It refers to the instance of the class itself.",
+            "It refers to the global scope of the program."
+          ],
+          correct: [
+            "It refers to the instance of the class itself."
+          ],
+          explanation: "In Python, 'self' is used in object-oriented programming to refer to the current instance of a class, allowing access to the instance's attributes and methods."
+        },
+        {
+          question: "Which of the following is the correct way to declare a list in Python?",
+          options: [
+            "list = {}",
+            "list = []",
+            "list = ()"
+          ],
+          correct: [
+            "list = []"
+          ],
+          explanation: "In Python, lists are declared using square brackets '[]'. Curly braces '{}' are used for dictionaries, while parentheses '()' are used for tuples."
+        },
+        {
+          question: "Which of the following will result in an error in Python?",
+          options: [
+            "if x == 5: pass",
+            "for i in range(10): print(i)",
+            "x = 10; if x = 5: pass"
+          ],
+          correct: [
+            "x = 10; if x = 5: pass"
+          ],
+          explanation: "In Python, the assignment operator '=' should not be used in conditions. The correct operator for comparison is '==' (e.g., if x == 5: pass)."
+        }
+      ]
+    })
+    setCurrentQuestionIndex(0)
+    setSelectedAnswer(null)
+  }
+
+  const handleAnswerSelect = (answer: string) => {
+    setSelectedAnswer(answer)
+    if (answer === quizData.Quiz[currentQuestionIndex].correct[0]) {
+      // Show explanation for 2 seconds before moving to next question
+      setTimeout(() => {
+        if (currentQuestionIndex < quizData.Quiz.length - 1) {
+          setCurrentQuestionIndex(currentQuestionIndex + 1)
+          setSelectedAnswer(null)
+        }
+      }, 2000)
+    }
+  }
 
   const formatTimestamp = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
@@ -202,42 +302,111 @@ export default function VideoPage() {
 
           {/* Transcript Dropdown */}
           <Card
-            className={`mt-6 transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 group ${isFullscreen ? "fixed inset-0 z-50 m-0 max-h-none rounded-none" : "max-h-[400px] overflow-auto"}`}
+            className={`mt-6 transition-all duration-200 ${
+              isFullscreen 
+                ? "fixed inset-0 z-50 m-0 max-h-none rounded-none" 
+                : "max-h-[400px] overflow-auto hover:-translate-y-1 hover:bg-background/40"
+            }`}
           >
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <CardTitle className="group-hover:text-primary group-hover:brightness-125">Video Transcript</CardTitle>
-              <button
-                className="p-1 rounded-md hover:bg-muted"
-                onClick={() => setIsFullscreen(!isFullscreen)}
-                aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-              >
-                {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
-              </button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setShowQuiz(!showQuiz);
+                    setSelectedAnswer(null);
+                  }}
+                  className="text-sm"
+                >
+                  {showQuiz ? "View Transcript" : "Take Quiz"}
+                </Button>
+                <button
+                  className="p-1 rounded-md hover:bg-muted"
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+                >
+                  {isFullscreen ? <Minimize2 className="h-5 w-5" /> : <Maximize2 className="h-5 w-5" />}
+                </button>
+              </div>
             </CardHeader>
             <CardContent>
-              <Accordion type="single" collapsible className="w-full">
-                {contentTable.map((chapter, index) => (
-                  <AccordionItem key={index} value={`chapter-${index}`}>
-                    <AccordionTrigger>
-                      <div className="flex flex-col items-start text-left">
-                        <div className="font-semibold">{chapter.chapter}</div>
+              {showQuiz ? (
+                <div className="space-y-4">
+                  {quizData.Quiz.length === 0 ? (
+                    <div className="p-4 border rounded-lg text-center">
+                      <p className="mb-4">No questions available yet.</p>
+                      <Button 
+                        onClick={handleGenerateQuestions}
+                        className="bg-primary text-primary-foreground hover:bg-primary/90"
+                      >
+                        Generate Questions
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="p-4 border rounded-lg">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold">{quizData.Quiz[currentQuestionIndex].question}</h3>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleGenerateQuestions}
+                          className="text-xs"
+                        >
+                          Generate New Questions
+                        </Button>
                       </div>
-                    </AccordionTrigger>
-                    <AccordionContent className={isFullscreen ? "max-h-none" : "max-h-60 overflow-y-auto"}>
-                      <div className="space-y-4">
-                        {chapter.transcript.map((item, idx) => (
-                          <div key={idx} className="flex gap-3 text-sm">
-                            <span className="text-muted-foreground whitespace-nowrap">
-                              {formatTimestamp(item.start)} - {formatTimestamp(item.end)}
-                            </span>
-                            <p>{item.text}</p>
+                      <div className="space-y-2">
+                        {quizData.Quiz[currentQuestionIndex].options.map((option, index) => (
+                          <div
+                            key={index}
+                            className={`p-3 border rounded-lg cursor-pointer transition-colors ${
+                              selectedAnswer === option
+                                ? selectedAnswer === quizData.Quiz[currentQuestionIndex].correct[0]
+                                  ? "bg-green-100 border-green-500 dark:bg-green-900/30"
+                                  : "bg-red-100 border-red-500 dark:bg-red-900/30"
+                                : "hover:bg-muted"
+                            }`}
+                            onClick={() => handleAnswerSelect(option)}
+                          >
+                            {option}
                           </div>
                         ))}
                       </div>
-                    </AccordionContent>
-                  </AccordionItem>
-                ))}
-              </Accordion>
+                      {selectedAnswer === quizData.Quiz[currentQuestionIndex].correct[0] && (
+                        <div className="mt-4 p-4 bg-muted rounded-lg">
+                          <p className="font-semibold">Explanation:</p>
+                          <p>{quizData.Quiz[currentQuestionIndex].explanation}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Accordion type="single" collapsible className="w-full">
+                  {contentTable.map((chapter, index) => (
+                    <AccordionItem key={index} value={`chapter-${index}`}>
+                      <AccordionTrigger>
+                        <div className="flex flex-col items-start text-left">
+                          <div className="font-semibold">{chapter.chapter}</div>
+                        </div>
+                      </AccordionTrigger>
+                      <AccordionContent className={isFullscreen ? "max-h-none" : "max-h-60 overflow-y-auto"}>
+                        <div className="space-y-4">
+                          {chapter.transcript.map((item, idx) => (
+                            <div key={idx} className="flex gap-3 text-sm">
+                              <span className="text-muted-foreground whitespace-nowrap">
+                                {formatTimestamp(item.start)} - {formatTimestamp(item.end)}
+                              </span>
+                              <p>{item.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              )}
             </CardContent>
           </Card>
         </div>
