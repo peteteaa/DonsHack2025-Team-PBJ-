@@ -93,7 +93,7 @@ export default function Home() {
 						</Alert>
 					)}
 					<Button className="w-full" onClick={handleStart}>
-						Let's get started
+						Let&apos;s get started
 					</Button>
 				</CardContent>
 				<CardFooter>
