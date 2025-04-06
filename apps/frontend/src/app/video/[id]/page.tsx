@@ -18,6 +18,7 @@ import type {
 	QuizData,
 	QuizMultipleItem,
 	QuizOpenItem,
+	UserNoteItem,
 } from "@shared/types";
 
 // YouTube IFrame API types
@@ -93,6 +94,9 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 	const [currentTimestamp, setCurrentTimestamp] = useState<number | null>(null);
 
 	const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
+
+	const [notes, setNotes] = useState<Array<UserNoteItem & { _id: string }>>([]);
+	const [note, setNote] = useState("");
 
 	const isMultipleChoice = (
 		question: QuizMultipleItem | QuizOpenItem
@@ -222,6 +226,47 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 		}
 	};
 
+	const handleSaveNotes = async (notes: string) => {
+		if (!videoPageData) return;
+		if (!notes) return;
+
+		if (!player) return;
+
+		const newNote = {
+			text: notes,
+			moment: Math.floor(player.getCurrentTime()),
+		};
+
+		try {
+			const response = await fetch(
+				`/api/video/${videoPageData.videoId._id}/notes`,
+				{
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({ note: newNote }),
+				}
+			);
+
+			if (!response.ok) {
+				throw new Error("Failed to save note");
+			}
+
+			const updatedNotes: Array<UserNoteItem & { _id: string }> =
+				await response.json();
+			setVideoPageData({
+				...videoPageData,
+				notes: updatedNotes,
+			});
+			setNotes(updatedNotes);
+			setNote("");
+		} catch (error) {
+			console.error("Error saving note:", error);
+			// TODO: Add error handling UI feedback
+		}
+	};
+
 	const formatTimestamp = (seconds: number) => {
 		const minutes = Math.floor(seconds / 60);
 		const remainingSeconds = seconds % 60;
@@ -278,6 +323,7 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 				}
 				const data = await response.json();
 				setVideoPageData(data);
+				setNotes(data.notes);
 			} catch (err) {
 				setError(err instanceof Error ? err.message : "An error occurred");
 			} finally {
@@ -500,7 +546,10 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 																				className="w-full"
 																				onClick={handleNextQuestion}
 																				variant="default"
-																				disabled={currentQuestionIndex >= quizData.quiz.length - 1}
+																				disabled={
+																					currentQuestionIndex >=
+																					quizData.quiz.length - 1
+																				}
 																			>
 																				Next Question
 																			</Button>
@@ -607,6 +656,10 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 								<ContentCard
 									contentTable={contentTable}
 									currentTimestamp={currentTimestamp}
+									savedNotes={notes}
+									note={note}
+									onSetNote={setNote}
+									onSaveNotes={handleSaveNotes}
 								/>
 							</div>
 						</div>

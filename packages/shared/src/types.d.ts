@@ -45,7 +45,7 @@ export interface TranscriptItem {
 export interface VideoPage {
 	_id: string;
 	flashCard: FlashCardItem[];
-	notes: UserNoteItem[];
+	notes: Array<UserNoteItem & { _id: string }>;
 	videoId: VideoId;
 }
 interface VideoId {
