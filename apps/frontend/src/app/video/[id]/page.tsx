@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { VideoPage as VideoPageType } from "@shared/types";
 import { Maximize2, Minimize2 } from "lucide-react";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import type { VideoPage as VideoPageType } from "@shared/types";
 
 // YouTube IFrame API types
 declare global {
@@ -23,7 +23,6 @@ declare global {
 			Player: new (
 				elementId: string,
 				config: {
-
 					height: string;
 					width: string;
 					videoId: string;
@@ -37,9 +36,7 @@ declare global {
 					};
 				},
 			) => YouTubePlayer;
-			PlayerState: {ENDED: number;
-				PLAYING: number;
-			};
+			PlayerState: { ENDED: number; PLAYING: number };
 		};
 	}
 }
@@ -99,7 +96,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 		Quiz: [],
 	});
 	const [videoPageData, setVideoPageData] = useState<VideoPageType | null>(
-		null
+		null,
 	);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -265,7 +262,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 	};
 
 	useEffect(() => {
-		if (!videoPageData) return;// Load YouTube API
+		if (!videoPageData) return; // Load YouTube API
 		const tag = document.createElement("script");
 		tag.src = "https://www.youtube.com/iframe_api";
 		const firstScriptTag = document.getElementsByTagName("script")[0];
@@ -337,9 +334,9 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 						<div className="flex gap-4">
 							<ThemeToggle />
 							<Button
-								variant="outline"
-								size="icon"
 								onClick={() => setIsFullscreen(!isFullscreen)}
+								size="icon"
+								variant="outline"
 							>
 								{isFullscreen ? <Minimize2 /> : <Maximize2 />}
 							</Button>
@@ -473,7 +470,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 														<div className="space-y-2">
 															{questionType === "multiple" &&
 															isMultipleChoice(
-																quizData.Quiz[currentQuestionIndex]
+																quizData.Quiz[currentQuestionIndex],
 															) ? (
 																quizData.Quiz[currentQuestionIndex].options.map(
 																	(option: string) => {
@@ -496,8 +493,8 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 																					isCorrect
 																						? "bg-green-500 hover:bg-green-600"
 																						: isIncorrect
-																						? "bg-red-500 hover:bg-red-600"
-																						: ""
+																							? "bg-red-500 hover:bg-red-600"
+																							: ""
 																				}`}
 																				disabled={false}
 																				key={option}
@@ -513,7 +510,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 																				{option}
 																			</Button>
 																		);
-																	}
+																	},
 																)
 															) : (
 																<div className="space-y-2">
@@ -541,7 +538,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 																					className="w-full"
 																					onClick={() => {
 																						setCurrentQuestionIndex(
-																							(prevIndex) => prevIndex + 1
+																							(prevIndex) => prevIndex + 1,
 																						);
 																						setSelectedAnswer(null);
 																						setShowAnswer(false);
@@ -554,7 +551,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 																	</div>
 																	{showAnswer &&
 																		isOpenResponse(
-																			quizData.Quiz[currentQuestionIndex]
+																			quizData.Quiz[currentQuestionIndex],
 																		) && (
 																			<div className="mt-4 p-4 bg-muted rounded-lg">
 																				<p className="font-semibold">
@@ -574,7 +571,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 														{selectedAnswer &&
 															questionType === "multiple" &&
 															isMultipleChoice(
-																quizData.Quiz[currentQuestionIndex]
+																quizData.Quiz[currentQuestionIndex],
 															) &&
 															selectedAnswer ===
 																quizData.Quiz[currentQuestionIndex]
@@ -627,7 +624,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 																		</span>
 																		<p>{item.text}</p>
 																	</div>
-																)
+																),
 															)}
 														</div>
 													</AccordionContent>
@@ -639,16 +636,16 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 							</Card>
 						</div>
 
-				<div className="flex flex-col lg:flex-row gap-6">
-					<div className={`w-full ${isFullscreen ? "hidden" : ""}`}>
-						<ContentCard
-							contentTable={contentTable}
-							currentTimestamp={currentTimestamp}
-						/>
+						<div className="flex flex-col lg:flex-row gap-6">
+							<div className={`w-full ${isFullscreen ? "hidden" : ""}`}>
+								<ContentCard
+									contentTable={contentTable}
+									currentTimestamp={currentTimestamp}
+								/>
+							</div>
+						</div>
 					</div>
-				</div>
-			</div>
-		</>
+				</>
 			)}
 		</div>
 	);
@@ -656,7 +653,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 
 export default function Page() {
 	const [videoPageData, setVideoPageData] = useState<VideoPageType | null>(
-		null
+		null,
 	);
 	const params = useParams();
 	const id = params?.id as string;
