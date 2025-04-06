@@ -5,5 +5,6 @@ import QuizController from "../controllers/quiz.controller";
 const router = Router({ mergeParams: true });
 
 router.post("/", QuizController.create);
+router.post("/validate", QuizController.validateAnswer);
 
 export default router;

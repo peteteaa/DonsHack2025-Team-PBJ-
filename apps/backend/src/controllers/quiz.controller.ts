@@ -50,7 +50,8 @@ The response should be a JSON array of questions in this exact format:
 [
   {
     "question": string,
-    "answer": string
+    "answer": string,
+    "explanation": string
   }
 ]
 
@@ -60,10 +61,37 @@ Requirements:
 3. The answer should be a concise model response
 4. Return ONLY valid JSON, no markdown or additional text`;
 
+const answerValidationPrompt = `Compare if the user's answer makes sense with the correct answer and return a JSON response in this exact format:
+
+{
+  "correct": boolean,
+  "explanation": string
+}
+
+Rules:
+1. If the answer is correct:
+   - Set "correct" to true
+   - Set "explanation" to "make sense"
+2. If the answer is incorrect:
+   - Set "correct" to false
+   - Set "explanation" to a brief reason why it's wrong
+
+Question: {question}
+Correct answer: {answer}
+User's answer: {userAnswer}
+
+Return ONLY the JSON object, no additional text or markdown.`;
+
 const createQuizSchema = z.object({
 	start: z.number().nonnegative(),
 	end: z.number().nonnegative(),
 	type: z.enum(["multiple", "open"]),
+});
+
+const validateAnswerSchema = z.object({
+	question: z.string(),
+	answer: z.string(),
+	userAnswer: z.string(),
 });
 
 class QuizController {
@@ -137,6 +165,70 @@ Generate the quiz questions JSON based on this transcript segment.`,
 				return;
 			}
 			console.error("Error generating quiz:", error);
+			res.status(StatusCodes.INTERNAL_SERVER_ERROR.code).json({
+				message: "Internal server error",
+			});
+		}
+	}
+
+	async validateAnswer(req: UserRequest, res: Response) {
+		try {
+			const validation = validateAnswerSchema.safeParse({
+				question: req.body.question,
+				answer: req.body.answer,
+				userAnswer: req.body.userAnswer,
+			});
+
+			if (!validation.success) {
+				const error = validation.error.errors[0];
+				let errorMessage = "Invalid request: ";
+
+				if (error.path.includes("question")) {
+					errorMessage += "Question must be a string";
+				} else if (error.path.includes("answer")) {
+					errorMessage += "Answer must be a string";
+				} else if (error.path.includes("userAnswer")) {
+					errorMessage += "User answer must be a string";
+				} else {
+					errorMessage += error.message;
+				}
+
+				throw new BadRequestError(errorMessage);
+			}
+			console.log(validation);
+			const { question, answer, userAnswer } = validation.data;
+
+			const chatSession = model.startChat({
+				generationConfig,
+				history: [
+					{
+						role: "user",
+						parts: [
+							{
+								text: answerValidationPrompt
+									.replace("{question}", question)
+									.replace("{answer}", answer)
+									.replace("{userAnswer}", userAnswer),
+							},
+						],
+					},
+				],
+			});
+
+			const geminiResponse = await chatSession.sendMessage("INSERT_INPUT_HERE");
+			const responseText = geminiResponse.response.text().trim();
+			const jsonStr = responseText.replace(/```json\n|\n```|```/g, "").trim();
+			const result = JSON.parse(jsonStr);
+
+			res.status(StatusCodes.SUCCESS.code).json(result);
+		} catch (error) {
+			if (error instanceof BadRequestError) {
+				res.status(StatusCodes.BAD_REQUEST.code).json({
+					message: error.message,
+				});
+				return;
+			}
+			console.error("Error validating answer:", error);
 			res.status(StatusCodes.INTERNAL_SERVER_ERROR.code).json({
 				message: "Internal server error",
 			});

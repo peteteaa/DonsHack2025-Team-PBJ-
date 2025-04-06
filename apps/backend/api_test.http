@@ -1,7 +1,7 @@
 @base_url = http://localhost:4000/api
 @token =
 @email = 
-@video_id =
+@video_id =67f1b1a81eb89d1810c406fa
 @note_id =
 @flashcard_id =
 
@@ -98,3 +98,14 @@ Content-Type: application/json
     "end": 320,
     "type": "open"
 }
+
+### validate answer ###
+POST {{base_url}}/video/{{video_id}}/quiz/validate
+Content-Type: application/json
+
+{
+    "answer": "When you have data and closely associated behavior or if you know you're going to need multiple instances.",
+		"userAnswer": "on tuesday",
+		"question": "According to the transcript, what is one scenario where using a class is justified instead of a function?"
+}
+
