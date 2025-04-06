@@ -9,15 +9,9 @@ export interface UserRequest extends Request {
 	user?: User;
 }
 
-export interface RawTranscript {
-	transcript: RawTranscriptItem[];
-}
+
 interface RawTranscriptItem {
 	duration: number;
 	offset: number;
 	text: string;
-}
-
-export interface Transcript {
-	transcript: TranscriptItem[];
 }

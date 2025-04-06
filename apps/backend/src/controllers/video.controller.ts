@@ -3,7 +3,6 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { GenerateContentResult } from "@google/generative-ai";
 import type {
 	ContentTable,
-	TranscriptItem,
 	UserVideosItem,
 	Video,
 } from "@shared/types";
@@ -13,15 +12,11 @@ import { EnvConfig } from "../config/env.config";
 import userModel from "../models/user.model";
 import UserModel from "../models/user.model";
 import videoModel from "../models/video.model";
-import type { RawTranscriptItem, UserRequest } from "../types";
+import type {UserRequest} from "../types";
 import StatusCodes from "../types/response-codes";
 import { BadRequestError, NotFoundError } from "../utils/errors";
 import { getVideoTitle } from "../utils/get_video_title";
-import {
-	fetchTranscript,
-	formatTranscript,
-	mergeSegments,
-} from "../utils/transcript";
+import {fetchTranscript, formatTranscript } from "../utils/transcript";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
 
 const apiKey = EnvConfig().gemini.apiKey;
@@ -78,7 +73,6 @@ IMPORTANT: Return ONLY a valid JSON object with the structure shown. Do not incl
 class VideoController {
 	async processVideo(req: UserRequest, res: Response) {
 		const { videoUrl } = req.body;
-		let mergedTranscript: TranscriptItem[] = [];
 
 		try {
 			const validatedUrl = youtubeUrlSchema.parse(videoUrl);
@@ -106,16 +100,11 @@ class VideoController {
 				return;
 			}
 
-			await fetchTranscript(
-				new URL(validatedUrl).searchParams.get("v") as string,
-			);
-
-			const transcript: RawTranscriptItem[] = [];
+			const transcript = await fetchTranscript(new URL(validatedUrl).searchParams.get("v") as string);
 			console.log("Transcript fetched successfully");
 			const formattedTranscript = formatTranscript(transcript);
 			console.log("Transcript formatted successfully");
-			mergedTranscript = mergeSegments(formattedTranscript);
-			console.log("Transcript merged successfully");
+
 
 			const chatSession = model.startChat({
 				generationConfig,
@@ -127,7 +116,7 @@ class VideoController {
 								text: `${transcriptPrompt}
 
 Here is the input transcript JSON:
-${JSON.stringify(mergedTranscript, null, 2)}
+${JSON.stringify(formattedTranscript, null, 2)}
 
 Generate the ContentTable JSON based on this transcript.`,
 							},
@@ -147,7 +136,7 @@ Generate the ContentTable JSON based on this transcript.`,
 			const createdVideo = await videoModel.create({
 				url: validatedUrl,
 				title: title,
-				transcript: mergedTranscript,
+				transcript: formattedTranscript,
 				contentTable,
 			});
 
