@@ -5,7 +5,7 @@ import NotesController from "../controllers/notes.controller";
 const router = Router({ mergeParams: true });
 
 router.get("/", NotesController.read);
-router.post("/", NotesController.save);
+router.post("/", NotesController.create);
 router.patch("/update/:id", NotesController.patch);
 
 export default router;

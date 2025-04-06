@@ -11,10 +11,16 @@ export interface Video {
 	contentTable: ContentTable;
 }
 
+type UserNotes = UserNoteItem[];
+export interface UserNoteItem {
+	moment: number;
+	text: string;
+}
+
 type UserVideos = UserVideosItem[];
 interface UserVideosItem {
 	flashCard: FlashCardItem[];
-	notes: string[];
+	notes?: UserNotes;
 	videoId: string;
 }
 interface FlashCardItem {
