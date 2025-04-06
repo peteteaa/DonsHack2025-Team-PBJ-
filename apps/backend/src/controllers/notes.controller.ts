@@ -1,10 +1,9 @@
 import type { Response } from "express";
 import type { UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
-import {validateUserAndVideo} from "../utils/validate_video_and_user";
+import { validateUserAndVideo } from "../utils/validate_video_and_user";
 
 class NotesController {
-
 	/**
 	 * Get notes of a specific User and Video
 	 * @param {UserRequest} req
@@ -30,15 +29,17 @@ class NotesController {
 		const videoId = req.params.videoID as string;
 		const { note } = req.body;
 
-		validateUserAndVideo(req, res, videoId).then((result) => {
-			if (!result) {
-				return; // Early return if validation fails
-			}
+		validateUserAndVideo(req, res, videoId)
+			.then((result) => {
+				if (!result) {
+					return; // Early return if validation fails
+				}
 
-			const {user, userVideo} = result
-			userVideo.notes.push(note);
+				const { user, userVideo } = result;
+				userVideo.notes.push(note);
 
-				user.save()
+				user
+					.save()
 					.then(() => {
 						res.status(StatusCodes.SUCCESS.code).json({
 							message: "Note saved successfully",
@@ -87,7 +88,8 @@ class NotesController {
 				note.text = text;
 			}
 
-			user.save()
+			user
+				.save()
 				.then(() => {
 					res.status(StatusCodes.SUCCESS.code).json(note);
 				})
@@ -100,7 +102,5 @@ class NotesController {
 		});
 	}
 }
-
-
 
 export default new NotesController();
