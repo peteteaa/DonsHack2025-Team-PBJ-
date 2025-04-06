@@ -1,3 +1,4 @@
+import type { UserVideosItem } from "@shared/types";
 import type { Response } from "express";
 import type { UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
@@ -40,10 +41,19 @@ class NotesController {
 
 				user
 					.save()
-					.then(() => {
-						res.status(StatusCodes.SUCCESS.code).json({
-							message: "Note saved successfully",
-						});
+					.then((savedUser) => {
+						const notes = savedUser.userVideos.find(
+							(video: UserVideosItem) => video.videoId === videoId,
+						)?.notes;
+
+						if (!notes) {
+							res.status(StatusCodes.NOT_FOUND.code).json({
+								message: "Notes not found after save",
+							});
+							return;
+						}
+
+						res.status(StatusCodes.SUCCESS.code).json(notes);
 					})
 					.catch((error) => {
 						console.error(error);
