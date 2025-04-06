@@ -3,11 +3,11 @@
 ## Team Members
 
 - Pete Thambundit
-- Jose Aceves Gonzales
 - Benjamin Puhani
+- Jose Aceves Gonzales
 
 ---
-**Summary**: Our project DonsFlow, designed for students who want to _actually understand_ the contents of a video, addresses the challenge of integrating video learning with keeping the focus. By providing a platform that allows you to watch YouTube videos alongside interactive quizzes (up until the point you watched), we enhance the learning experience. Key features include a custom YouTube player, AI-generated table of contents, interactive, time-stamped notes, and AI-generated quizzes, light-/darkmode.
+**Summary**: DonsFlow is designed for students who want to _actually understand_ the contents of a video, addresses the challenge of integrating video learning with keeping the focus. By providing a platform that allows you to watch YouTube videos alongside interactive quizzes (up until the point you watched), we enhance the learning experience. Key features include a custom YouTube player, AI-generated table of contents, interactive, time-stamped notes, and AI-generated quizzes, light-/darkmode.
 
 ---
 
