@@ -1,6 +1,9 @@
 @base_url = http://localhost:4000/api
-@token =  
-@email =  
+@token =
+@email =
+@video_id =
+@note_id =
+
 ### test api ###
 GET {{base_url}}
 
@@ -32,9 +35,27 @@ Content-Type: application/json
 }
 
 ### get video ###
-GET {{base_url}}/video/67f1b1a81eb89d1810c406fa
+GET {{base_url}}/video/{{video_id}}
 
 ### get notes for specific video of user ###
-GET {{base_url}}/video/notes/67f1b1a81eb89d1810c406fa
+GET {{base_url}}/video/{{video_id}}/notes
+Content-Type: application/json
 
+### create note for specific video of user ###
+POST {{base_url}}/video/{{video_id}}/notes
+Content-Type: application/json
 
+{
+    "note": {
+      "moment": 0,
+      "text": "This is a note for the beginning of the video"
+    }
+}
+
+### patch a note for specific video of user ###
+PATCH {{base_url}}/video/{{video_id}}/notes/update/{{note_id}}
+Content-Type: application/json
+
+{
+  "moment": 0
+}
