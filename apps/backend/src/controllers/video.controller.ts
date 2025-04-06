@@ -94,6 +94,7 @@ class VideoController {
 					);
 				}
 				res.status(StatusCodes.SUCCESS.code).json({
+					videoId: video._id,
 					url: video.url,
 					title: video.title,
 					transcript: video.transcript,
@@ -151,6 +152,7 @@ Generate the ContentTable JSON based on this transcript.`,
 			);
 
 			res.status(StatusCodes.SUCCESS.code).json({
+				videoId: createdVideo._id,
 				url: createdVideo.url,
 				title: createdVideo.title,
 				transcript: createdVideo.transcript,
@@ -213,7 +215,15 @@ Generate the ContentTable JSON based on this transcript.`,
 				return null;
 			}
 
-			res.status(StatusCodes.SUCCESS.code).json(user.userVideos);
+			// populate the userVideos
+			user
+				.populate({
+					path: "userVideos.videoId",
+					model: "Video",
+				})
+				.then((populatedUser) => {
+					res.status(StatusCodes.SUCCESS.code).json(populatedUser.userVideos);
+				});
 		});
 	}
 }

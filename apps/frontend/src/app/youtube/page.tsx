@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Moon, Sun } from "lucide-react"; // Import the Sun and Moon icons
 import { useRouter } from "next/navigation";
+import type React from "react";
 import { useEffect, useState } from "react";
 
 export default function YouTubePage() {
@@ -19,6 +20,9 @@ export default function YouTubePage() {
 	const [url, setUrl] = useState("");
 	const [error, setError] = useState("");
 	const [isDarkMode, setIsDarkMode] = useState(false);
+	const [videos, setVideos] = useState([]);
+	const [loading, setLoading] = useState(true);
+	const [isSubmitting, setIsSubmitting] = useState(false);
 
 	// Handle theme switching based on the isDarkMode state
 	useEffect(() => {
@@ -39,21 +43,50 @@ export default function YouTubePage() {
 		}
 	}, []);
 
-	const extractVideoId = (url: string) => {
-		const regExp =
-			/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-		const match = url.match(regExp);
-		return match && match[2].length === 11 ? match[2] : null;
-	};
+	// Fetch previously watched videos
+	useEffect(() => {
+		fetch("api/video")
+			.then((response) => response.json())
+			.then((data) => {
+				const mappedVideos = data.map(
+					(entry: { videoId: { _id: string; title: string } }) => entry.videoId,
+				);
+				setVideos(mappedVideos);
+				setLoading(false);
+			})
+			.catch((error) => {
+				console.error("Error fetching videos:", error);
+				setLoading(false);
+			});
+	}, []);
 
-	const handleSubmit = (e: React.FormEvent) => {
+	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-		const id = extractVideoId(url);
-		if (id) {
-			router.push(`/video/${id}`);
-		} else {
-			setError("Invalid YouTube URL. Please enter a valid YouTube URL.");
-		}
+		setIsSubmitting(true);
+
+		// call the process api
+		await fetch("/api/video/process", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json",
+			},
+			body: JSON.stringify({ videoUrl: url }),
+		})
+			.then((response) => {
+				if (!response.ok) {
+					throw new Error("Failed to process the video URL");
+				}
+				return response.json();
+			})
+			.then((data) => {
+				router.push(`/video/${data.videoId}`);
+			})
+			.catch((error) => {
+				console.error("Error processing video:", error);
+				setError("Failed to process the video URL");
+				// if there is an error then you can try again
+				setIsSubmitting(false);
+			});
 	};
 
 	return (
@@ -91,7 +124,9 @@ export default function YouTubePage() {
 								type="text"
 								value={url}
 							/>
-							<Button type="submit">Load Video</Button>
+							<Button disabled={isSubmitting} type="submit">
+								{isSubmitting ? "Loading..." : "Load Video"}
+							</Button>
 						</div>
 						{error && (
 							<Alert variant="destructive">
@@ -106,7 +141,26 @@ export default function YouTubePage() {
 				<CardHeader>
 					<CardTitle>Previously Visited Videos</CardTitle>
 				</CardHeader>
-				<CardContent>{/* Content will go here */}</CardContent>
+				<CardContent>
+					{loading ? (
+						<p>Loading...</p>
+					) : videos.length > 0 ? (
+						<ul>
+							{videos.map((video: { title: string; _id: string }) => (
+								<li className="mb-4" key={video._id}>
+									<a
+										className="text-blue-500 hover:underline"
+										href={`/video/${video._id}`}
+									>
+										{video.title}
+									</a>
+								</li>
+							))}
+						</ul>
+					) : (
+						<p>No previously watched videos found.</p>
+					)}
+				</CardContent>
 			</Card>
 		</div>
 	);

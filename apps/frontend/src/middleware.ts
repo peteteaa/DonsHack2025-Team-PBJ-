@@ -6,7 +6,6 @@ export async function middleware(request: NextRequest) {
 
 	// Don't protect these paths
 	if (
-		request.nextUrl.pathname.startsWith("/auth") ||
 		request.nextUrl.pathname.startsWith("/authenticate") ||
 		request.nextUrl.pathname.startsWith("/_next") ||
 		request.nextUrl.pathname.startsWith("/api")
@@ -29,6 +28,15 @@ export async function middleware(request: NextRequest) {
 
 		const data = await response.json();
 		console.log("[Auth] Status response:", data);
+
+		if (request.nextUrl.pathname.startsWith("/auth")) {
+			if (data.authenticated) {
+				console.log("[Auth] Authenticated, redirecting to /");
+				return NextResponse.redirect(new URL("/", request.url));
+			}
+			console.log("[Auth] Allowing access to /auth");
+			return NextResponse.next();
+		}
 
 		if (!data.authenticated) {
 			console.log("[Auth] Not authenticated, redirecting to /auth");

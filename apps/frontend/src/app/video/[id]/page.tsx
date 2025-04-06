@@ -9,9 +9,10 @@ import {
 	AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Home as HomeIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Maximize2, Minimize2 } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type {
 	VideoPage as VideoPageType,
@@ -42,10 +43,7 @@ declare global {
 					};
 				}
 			) => YouTubePlayer;
-			PlayerState: {
-				ENDED: number;
-				PLAYING: number;
-			};
+			PlayerState: { ENDED: number; PLAYING: number };
 		};
 	}
 }
@@ -71,6 +69,7 @@ type QuestionType = "open" | "multiple";
 
 const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 	const params = useParams();
+	const router = useRouter();
 	const id = params?.id as string;
 	const [isFullscreen, setIsFullscreen] = useState(false);
 	const [showQuiz, setShowQuiz] = useState(false);
@@ -274,9 +273,7 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 	};
 
 	useEffect(() => {
-		if (!videoPageData) return;
-
-		// Load YouTube API
+		if (!videoPageData) return; // Load YouTube API
 		const tag = document.createElement("script");
 		tag.src = "https://www.youtube.com/iframe_api";
 		const firstScriptTag = document.getElementsByTagName("script")[0];
@@ -349,11 +346,11 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 						<div className="flex gap-4">
 							<ThemeToggle />
 							<Button
-								variant="outline"
+								onClick={() => router.push("/")}
 								size="icon"
-								onClick={() => setIsFullscreen(!isFullscreen)}
+								variant="outline"
 							>
-								{isFullscreen ? <Minimize2 /> : <Maximize2 />}
+								<HomeIcon />
 							</Button>
 						</div>
 					</div>
@@ -503,6 +500,8 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 																				className={`w-full justify-start ${
 																					isCorrect
 																						? "bg-green-500 hover:bg-green-600"
+																						: isCorrect
+																						? "bg-red-500 hover:bg-red-600"
 																						: ""
 																				}`}
 																				disabled={false}
