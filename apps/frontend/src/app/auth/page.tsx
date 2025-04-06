@@ -1,14 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
-import { AlertCircle, Loader2 } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Sun, Moon, AlertCircle, Loader2 } from "lucide-react"
 import { z } from "zod"
-
 
 const emailSchema = z.object({
   email: z.string().email("Invalid email format")
@@ -19,6 +18,26 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isDarkMode, setIsDarkMode] = useState(false)
+
+  // Handle theme switching based on the isDarkMode state
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add("dark")
+      localStorage.setItem("theme", "dark")
+    } else {
+      document.documentElement.classList.remove("dark")
+      localStorage.setItem("theme", "light")
+    }
+  }, [isDarkMode])
+
+  // Check localStorage for user preference on initial load
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme")
+    if (savedTheme === "dark") {
+      setIsDarkMode(true)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +61,6 @@ export default function AuthPage() {
         },
         body: JSON.stringify({ email: validationResult.data.email }),
       })
-      debugger
 
       if (!response.ok) {
         const contentType = response.headers.get("content-type")
@@ -65,11 +83,22 @@ export default function AuthPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome to DonsFlow</CardTitle>
-          <CardDescription>Enter your email to sign in or create an account</CardDescription>
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 dark:bg-gray-900 p-4">
+      <Card className="w-full max-w-md dark:bg-gray-800 dark:text-white">
+        <CardHeader className="flex justify-between items-center">
+          <div>
+            <CardTitle>Welcome to DonsFlow</CardTitle>
+            <CardDescription>Enter your email to sign in or create an account</CardDescription>
+          </div>
+          <Button
+            variant="ghost"
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            aria-label={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            className="relative p-2"
+          >
+            <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          </Button>
         </CardHeader>
         <form onSubmit={handleSubmit} noValidate>
           <CardContent>

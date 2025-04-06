@@ -31,9 +31,9 @@ const ContentCard = ({ contentTable }: ContentCardProps) => {
   }
 
   return (
-    <Card>
+    <Card className="transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 group">
       <CardHeader className="pb-2 flex flex-row items-center justify-between">
-        <CardTitle>Content Overview</CardTitle>
+        <CardTitle className="group-hover:text-primary group-hover:brightness-125">Content Overview</CardTitle>
         <Button
           variant="ghost"
           onClick={toggleView}

@@ -183,9 +183,9 @@ export default function VideoPage() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 group">
             <CardHeader className="pb-2">
-              <CardTitle>{params?.title }</CardTitle>
+              <CardTitle className="group-hover:text-primary group-hover:brightness-125">ADD TITILE RIGHT HERE!!!!</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="relative pt-[56.25%]">
@@ -202,10 +202,10 @@ export default function VideoPage() {
 
           {/* Transcript Dropdown */}
           <Card
-            className={`mt-6 ${isFullscreen ? "fixed inset-0 z-50 m-0 max-h-none rounded-none" : "max-h-[400px] overflow-auto"}`}
+            className={`mt-6 transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 group ${isFullscreen ? "fixed inset-0 z-50 m-0 max-h-none rounded-none" : "max-h-[400px] overflow-auto"}`}
           >
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
-              <CardTitle>Video Transcript</CardTitle>
+              <CardTitle className="group-hover:text-primary group-hover:brightness-125">Video Transcript</CardTitle>
               <button
                 className="p-1 rounded-md hover:bg-muted"
                 onClick={() => setIsFullscreen(!isFullscreen)}
