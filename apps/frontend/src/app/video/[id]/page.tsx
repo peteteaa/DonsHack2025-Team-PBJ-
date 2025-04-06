@@ -76,6 +76,8 @@ interface VideoPageProps {
   contentTable: ChapterContent[];
 }
 
+type QuestionType = 'open' | 'multiple';
+
 const VideoPage = ({ contentTable }: VideoPageProps) => {
   const params = useParams()
   const id = params?.id as string
@@ -91,7 +93,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
     Quiz: []
   })
 
-  const [quizType, setQuizType] = useState("multiple")
+  const [questionType, setQuestionType] = useState<QuestionType>('open')
 
   const isMultipleChoice = (question: QuizQuestion): question is MultipleChoiceQuestion => {
     return 'options' in question && 'correct' in question
@@ -102,89 +104,64 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
   }
 
   const handleGenerateQuestions = () => {
-    if (quizType === "multiple") {
+    if (questionType === "multiple") {
       setQuizData({
         type: "multiple",
         Quiz: [
           {
-            question: "What is the primary reason for using functions over classes in simple scenarios?",
+            question: "What is the first bad practice mentioned in object-oriented Python code?",
             options: [
-              "To reduce complexity and boilerplate",
-              "To increase flexibility and reusability",
-              "To handle multi-threading operations"
+              "Using inheritance",
+              "Having a function masquerading as a class",
+              "Not using encapsulation",
+              "Using static methods"
             ],
-            correct: ["To reduce complexity and boilerplate"],
-            explanation: "Functions are preferred in simple scenarios because they help reduce unnecessary complexity and boilerplate."
-          },
-          {
-            question: "Which concept in OOP allows code reuse through hierarchical relationships?",
-            options: [
-              "Inheritance",
-              "Polymorphism",
-              "Encapsulation"
-            ],
-            correct: ["Inheritance"],
-            explanation: "Inheritance enables code reuse by allowing classes to inherit properties and methods from other classes."
-          },
-          {
-            question: "What is the main purpose of encapsulation?",
-            options: [
-              "To hide internal state and implementation details",
-              "To create multiple instances of a class",
-              "To enable method overriding"
-            ],
-            correct: ["To hide internal state and implementation details"],
-            explanation: "Encapsulation helps maintain code by hiding internal details and exposing only necessary functionality."
+            correct: ["Having a function masquerading as a class"],
+            explanation: "The first bad practice discussed is using a class when a simple function would suffice. The example shows a data loader class that only has one method, which could be simplified into a function."
           }
         ]
-      })
+      });
     } else {
       setQuizData({
         type: "open",
         Quiz: [
           {
-            question: "What is the main difference between a function and a class in programming?",
-            answer: "A function is used for simple tasks, while a class is used for more complex scenarios involving multiple methods, data access, and instances."
-          },
-          {
-            question: "Explain the concept of inheritance in object-oriented programming.",
-            answer: "Inheritance allows one class to inherit properties and methods from another class, enabling code reuse and the creation of hierarchical relationships between classes."
-          },
-          {
-            question: "What is polymorphism in object-oriented programming?",
-            answer: "Polymorphism is the ability of different classes to be treated as instances of the same class through a common interface, allowing for method overriding or overloading."
+            question: "Why should you avoid using classes with static methods for utility functions in Python?",
+            answer: "Using classes with static methods for utility functions adds unnecessary complexity and boilerplate code. In Python, it's better to use modules instead, as they provide a cleaner way to organize code without the overhead of class instantiation or static method calls. This makes the code simpler to read and maintain."
           }
         ]
-      })
+      });
     }
-    setCurrentQuestionIndex(0)
-    setSelectedAnswer(null)
-    setUserAnswer("")
-    setShowAnswer(false)
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setShowAnswer(false);
   }
 
-  const handleAnswerSelect = (answer: string) => {
-    setSelectedAnswer(answer)
-    const currentQuestion = quizData.Quiz[currentQuestionIndex]
-    if (isMultipleChoice(currentQuestion) && answer === currentQuestion.correct[0]) {
+  const handleAnswerSelect = (option: string) => {
+    setSelectedAnswer(option);
+    const currentQuestion = quizData.Quiz[currentQuestionIndex];
+    
+    if (isMultipleChoice(currentQuestion) && option === currentQuestion.correct[0]) {
+      // Wait a bit to show the correct answer before moving to next question
       setTimeout(() => {
         if (currentQuestionIndex < quizData.Quiz.length - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1)
-          setSelectedAnswer(null)
+          setCurrentQuestionIndex(currentQuestionIndex + 1);
+          setSelectedAnswer(null);
         }
-      }, 2000)
+      }, 1500);
     }
   }
 
   const handleShortAnswerSubmit = () => {
-    setShowAnswer(true)
+    setShowAnswer(true);
+    // Wait for user to read the answer before moving to next question
     setTimeout(() => {
       if (currentQuestionIndex < quizData.Quiz.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1)
-        setUserAnswer("")
-        setShowAnswer(false)
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setSelectedAnswer(null);
+        setShowAnswer(false);
       }
-    }, 2000)
+    }, 3000);
   }
 
   const formatTimestamp = (seconds: number) => {
@@ -313,103 +290,113 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
             <CardContent>
               {showQuiz ? (
                 <div className="space-y-4">
-                  {quizData.Quiz.length === 0 ? (
-                    <div className="p-4 border rounded-lg text-center">
-                      <p className="mb-4">No questions available yet.</p>
-                      <Button 
-                        onClick={handleGenerateQuestions}
-                        className="bg-primary text-primary-foreground hover:bg-primary/90"
-                      >
-                        Generate Questions
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="p-4 border rounded-lg">
-                      <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold">{quizData.Quiz[currentQuestionIndex].question}</h3>
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={handleGenerateQuestions}
-                            className="bg-primary text-primary-foreground hover:bg-primary/90"
-                          >
-                            Generate Questions
-                          </Button>
+                  <div className="p-4 border rounded-lg">
+                    {quizData.Quiz.length === 0 ? (
+                      <div>
+                        <p className="mb-4">No questions available yet.</p>
+                        <div className="flex items-center gap-4">
                           <div className="border rounded-lg p-1 flex gap-1">
                             <Button
-                              onClick={() => setQuizType("multiple")}
-                              variant={quizType === "multiple" ? "default" : "ghost"}
+                              onClick={() => setQuestionType("multiple")}
+                              variant={questionType === "multiple" ? "default" : "ghost"}
                               size="sm"
                               className="text-xs"
                             >
                               Multiple Choice
                             </Button>
                             <Button
-                              onClick={() => setQuizType("open")}
-                              variant={quizType === "open" ? "default" : "ghost"}
+                              onClick={() => setQuestionType("open")}
+                              variant={questionType === "open" ? "default" : "ghost"}
                               size="sm"
                               className="text-xs"
                             >
                               Short Response
                             </Button>
                           </div>
+                          <Button
+                            onClick={() => handleGenerateQuestions()}
+                            variant="default"
+                            className="text-sm"
+                          >
+                            Generate Questions
+                          </Button>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        {quizType === "multiple" && isMultipleChoice(quizData.Quiz[currentQuestionIndex]) ? (
-                          quizData.Quiz[currentQuestionIndex].options.map((option: string, index: number) => {
-                            const currentQuestion = quizData.Quiz[currentQuestionIndex];
-                            const isCorrect = isMultipleChoice(currentQuestion) && selectedAnswer === option && selectedAnswer === currentQuestion.correct[0];
-                            
-                            return (
-                              <div
-                                key={index}
-                                className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                                  selectedAnswer === option
-                                    ? isCorrect
-                                      ? "bg-green-100 border-green-500 dark:bg-green-900/30"
-                                      : "bg-red-100 border-red-500 dark:bg-red-900/30"
-                                    : "hover:bg-muted"
-                                }`}
-                                onClick={() => handleAnswerSelect(option)}
-                              >
-                                {option}
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <div>
-                            <textarea
-                              value={userAnswer}
-                              onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setUserAnswer(e.target.value)}
-                              placeholder="Enter your answer here..."
-                              className="w-full p-4 border rounded-lg"
-                            />
-                            <div className="flex justify-end mt-4">
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-center mb-4">
+                          <div className="flex items-center gap-4">
+                            <Button
+                              onClick={() => {
+                                setQuizData({ type: "multiple", Quiz: [] });
+                                setCurrentQuestionIndex(0);
+                                setSelectedAnswer(null);
+                                setShowAnswer(false);
+                              }}
+                              variant="default"
+                              className="text-sm"
+                            >
+                              Reset Questions
+                            </Button>
+                            <h3 className="text-lg font-semibold ml-4">
+                              {quizData.Quiz[currentQuestionIndex].question}
+                            </h3>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          {questionType === "multiple" && isMultipleChoice(quizData.Quiz[currentQuestionIndex]) ? (
+                            quizData.Quiz[currentQuestionIndex].options.map((option: string, index: number) => {
+                              const currentQuestion = quizData.Quiz[currentQuestionIndex];
+                              const isCorrect = isMultipleChoice(currentQuestion) && selectedAnswer === option && selectedAnswer === currentQuestion.correct[0];
+                              const isIncorrect = isMultipleChoice(currentQuestion) && selectedAnswer === option && selectedAnswer !== currentQuestion.correct[0];
+                              
+                              return (
+                                <Button
+                                  key={index}
+                                  onClick={() => handleAnswerSelect(option)}
+                                  variant={selectedAnswer === option ? "default" : "outline"}
+                                  className={`w-full justify-start ${
+                                    isCorrect ? "bg-green-500 hover:bg-green-600" : 
+                                    isIncorrect ? "bg-red-500 hover:bg-red-600" : ""
+                                  }`}
+                                >
+                                  {option}
+                                </Button>
+                              );
+                            })
+                          ) : (
+                            <div className="space-y-2">
+                              <textarea
+                                value={selectedAnswer || ""}
+                                onChange={(e) => setSelectedAnswer(e.target.value)}
+                                placeholder="Type your answer here..."
+                                className="w-full h-32 p-2 border rounded-md"
+                              />
                               <Button
                                 onClick={handleShortAnswerSubmit}
-                                className="bg-primary text-primary-foreground hover:bg-primary/90"
-                                disabled={!userAnswer.trim()}
+                                variant="outline"
+                                className="w-full"
                               >
                                 Submit Answer
                               </Button>
                             </div>
+                          )}
+                        </div>
+                        {showAnswer && questionType === "open" && isOpenResponse(quizData.Quiz[currentQuestionIndex]) && (
+                          <div className="mt-4 p-4 bg-muted rounded-lg">
+                            <p className="font-semibold">Sample Answer:</p>
+                            <p>{quizData.Quiz[currentQuestionIndex].answer}</p>
                           </div>
                         )}
-                      </div>
-                      {showAnswer && quizType === "open" && isOpenResponse(quizData.Quiz[currentQuestionIndex]) && (
-                        <div className="mt-4 p-4 bg-muted rounded-lg">
-                          <p className="font-semibold">Sample Answer:</p>
-                          <p>{quizData.Quiz[currentQuestionIndex].answer}</p>
-                        </div>
-                      )}
-                      {selectedAnswer && quizType === "multiple" && isMultipleChoice(quizData.Quiz[currentQuestionIndex]) && (
-                        <div className="mt-4 p-4 bg-muted rounded-lg">
-                          <p className="font-semibold">Explanation:</p>
-                          <p>{quizData.Quiz[currentQuestionIndex].explanation}</p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+                        {selectedAnswer && questionType === "multiple" && isMultipleChoice(quizData.Quiz[currentQuestionIndex]) && (
+                          <div className="mt-4 p-4 bg-muted rounded-lg">
+                            <p className="font-semibold">Explanation:</p>
+                            <p>{quizData.Quiz[currentQuestionIndex].explanation}</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <Accordion type="single" collapsible className="w-full">
@@ -450,7 +437,75 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 }
 
 export default function Page() {
-  // Initialize with empty content table, will be populated later
-  const [contentTable] = useState<ChapterContent[]>([])
+  // Use the provided content table
+  const contentTable = [
+    {
+      chapter: "Function vs. Class for Simple Operations",
+      summary: "Avoid using a class when a simple function will suffice. Classes should be reserved for situations with multiple methods, data access needs, and multiple instances. Using functions simplifies the code and reduces boilerplate.",
+      transcript: [
+        {
+          end: 79.88,
+          start: 0.12,
+          text: "is your objectoriented python code turning into unmanageable spaghetti today I&amp;#39;ll cover bad practices to avoid at all costs and what to do instead ..."
+        }
+      ]
+    },
+    {
+      chapter: "Modules vs. Classes with Static Methods",
+      summary: "Instead of using classes with static methods for utility functions, leverage Python modules. Modules provide a cleaner way to organize code without the overhead of class instantiation or static method calls.",
+      transcript: [
+        {
+          end: 387.599,
+          start: 79.92,
+          text: "needs like so this has simplified the code a lot let me run this just to make sure it works and it does this is the data that it has loaded from the file if you&amp;#39;re using classes a lot in this way just containers for methods that often adds unnecessary complexity and boiler plate code because then you have to create an instance of the class to call that method ..."
+        }
+      ]
+    },
+    {
+      chapter: "Favor Composition over Inheritance",
+      summary: "Avoid overly complex inheritance structures. Instead of using inheritance to define roles, consider using composition with role classes or enums to reduce coupling and improve code maintainability. Flattening hierarchies simplifies the code.",
+      transcript: [
+        {
+          end: 563.68,
+          start: 387.599,
+          text: "the third bad practice is creating overly complex inheritance structures often people try to avoid or decouple code by using inheritance and this often just makes things worse ..."
+        }
+      ]
+    },
+    {
+      chapter: "Rely on Abstractions (Dependency Injection and Protocols)",
+      summary: "Avoid directly instantiating concrete classes within methods. Instead, use dependency injection to pass instances and leverage abstractions like protocols or abstract base classes to decouple code, improve flexibility, and facilitate testing by enabling the use of mock objects.",
+      transcript: [
+        {
+          end: 626.72,
+          start: 563.68,
+          text: "the fourth bad practice that you don&amp;#39;t rely on abstractions basically directly calling methods constructing objects from other classes Within a method or a function here you see an example of that I have an order class that has a customer email a product ID and a quantity very basic and they also have an SMTP email service which is used to connect to a server and then sending an email to a customer ..."
+        }
+      ]
+    },
+    {
+      chapter: "Importance of Encapsulation",
+      summary: "Implement encapsulation to hide implementation details and maintain internal consistency. Use methods and properties to control access and modification of internal variables. However, for simple data-focused classes (data classes), direct attribute access can be more practical.",
+      transcript: [
+        {
+          end: 1132.679,
+          start: 1002.88,
+          text: "the fifth bad practice is do not have encapsulation if you have a class in this case there&amp;#39;s a bank account class that has a balance and the way that we work with the bank account in this example is that we directly modify the balance we subtract 50 we add 100 encapsulation means that you hide implementation details from the outside world this is what methods properties allow you to do in a class ..."
+        }
+      ]
+    },
+    {
+      chapter: "Avoid Overusing Mixins (Favor Composition)",
+      summary: "Overusing mixins leads to complicated and hard-to-trace class hierarchies. Consider using composition instead. If classes are simple, functions might be an even better alternative.",
+      transcript: [
+        {
+          end: 1483.64,
+          start: 1132.679,
+          text: "and by the way if you enjoy these types of discussions make sure to join my Discord server at discord. iron. codes it&amp;#39;s a really awesome Community love for you to join the final bad practice I want to talk about is mixin yes overusing mixins to add functionality to existing classes can really lead to complicated and hard to trace class hierarchies for example here I have an order class I have a log mix in which has a log methods I have a save mix in which has a save method and then I&amp;#39;m mixing in those features into other classes like processing in order and counseling an order ..."
+        }
+      ]
+    }
+  ]
+
   return <VideoPage contentTable={contentTable} />
 }
