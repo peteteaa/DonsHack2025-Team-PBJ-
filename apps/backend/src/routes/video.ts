@@ -6,7 +6,7 @@ const router = Router();
 // Routes for the notes of a specific video
 
 router.post("/process", VideoController.processVideo);
-router.use("/notes/:videoID", notesRoutes);
+router.use("/:videoID/notes/", notesRoutes);
 router.get("/:videoID", VideoController.getVideo);
 
 export default router;

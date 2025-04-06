@@ -26,8 +26,15 @@ const userSchema = new Schema({
 			],
 			notes: [
 				{
-					type: String,
-				},
+					moment: {
+						type: Number,
+						required: true,
+					},
+					text: {
+						type: String,
+						required: true,
+					},
+				}
 			],
 		},
 	],
