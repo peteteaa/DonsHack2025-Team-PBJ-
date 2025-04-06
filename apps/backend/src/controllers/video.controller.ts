@@ -1,22 +1,18 @@
 // cspell: words youtu
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { GenerateContentResult } from "@google/generative-ai";
-import type {
-	ContentTable,
-	UserVideosItem,
-	Video,
-} from "@shared/types";
+import type { ContentTable, UserVideosItem, Video } from "@shared/types";
 import type { Response } from "express";
 import { z } from "zod";
 import { EnvConfig } from "../config/env.config";
 import userModel from "../models/user.model";
 import UserModel from "../models/user.model";
 import videoModel from "../models/video.model";
-import type {UserRequest} from "../types";
+import type { GeminiResponse, UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
 import { BadRequestError, NotFoundError } from "../utils/errors";
 import { getVideoTitle } from "../utils/get_video_title";
-import {fetchTranscript, formatTranscript } from "../utils/transcript";
+import { fetchTranscript, formatTranscript } from "../utils/transcript";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
 
 const apiKey = EnvConfig().gemini.apiKey;
@@ -41,7 +37,7 @@ const youtubeUrlSchema = z.string().refine((url) => {
 	return pattern.test(url);
 }, "Invalid YouTube video URL");
 
-const transcriptPrompt = `Here is a transcript JSON where each item contains "start", "end", and "text" fields. Your task is to analyze this transcript and transform it into a structured ContentTable format.
+const transcriptPrompt = `Here is a transcript JSON where each item contains "id", "start", "end", and "text" fields. Your task is to analyze this transcript and transform it into a structured ContentTable format.
 
 The expected structure is:
 
@@ -49,23 +45,17 @@ The expected structure is:
   {
     "chapter": string,
     "summary": string,
-    "transcript": [
-      {
-        "start": number,
-        "end": number,
-        "text": string
-      }
-    ]
+    "transcript_start_id": number,
+    "transcript_end_id": number
   }
 ]
-
 
 Your task is to:
 1. Analyze the transcript and divide it into logical chapters based on topic changes
 2. For each chapter:
    - Create a concise, descriptive title
    - Write a brief summary of the main points
-   - Include the relevant transcript segments with their original timing
+   - Include the transcript_start_id (id of first transcript in chapter) and transcript_end_id (id of last transcript in chapter)
 3. Structure the response exactly as shown above
 
 IMPORTANT: Return ONLY a valid JSON object with the structure shown. Do not include any markdown formatting, code blocks, or additional text in your response.`;
@@ -100,11 +90,12 @@ class VideoController {
 				return;
 			}
 
-			const transcript = await fetchTranscript(new URL(validatedUrl).searchParams.get("v") as string);
+			const transcript = await fetchTranscript(
+				new URL(validatedUrl).searchParams.get("v") as string,
+			);
 			console.log("Transcript fetched successfully");
 			const formattedTranscript = formatTranscript(transcript);
 			console.log("Transcript formatted successfully");
-
 
 			const chatSession = model.startChat({
 				generationConfig,
@@ -124,12 +115,34 @@ Generate the ContentTable JSON based on this transcript.`,
 					},
 				],
 			});
+			console.log("Chat session started");
 			const result: GenerateContentResult =
 				await chatSession.sendMessage("INSERT_INPUT_HERE");
+			console.log("Chat session completed");
+			console.log({ result });
 			const responseText = result.response.text();
+			console.log(
+				"-------------------------------------------------------------------------",
+			);
+			console.log(responseText);
 			// Remove any markdown formatting or extra text
 			const jsonStr = responseText.replace(/```json\n|\n```|```/g, "").trim();
-			const contentTable: ContentTable = JSON.parse(jsonStr);
+			console.log(
+				"-------------------------------------------------------------------------",
+			);
+			console.log(jsonStr);
+			const geminiContentTable: GeminiResponse[] = JSON.parse(jsonStr);
+
+			const contentTable: ContentTable = geminiContentTable.map(
+				(geminiItem) => ({
+					chapter: geminiItem.chapter,
+					summary: geminiItem.summary,
+					transcript: formattedTranscript.slice(
+						geminiItem.transcript_start_id,
+						geminiItem.transcript_end_id + 1,
+					),
+				}),
+			);
 
 			const title = await getVideoTitle(videoUrl);
 
@@ -170,32 +183,46 @@ Generate the ContentTable JSON based on this transcript.`,
 	}
 
 	getVideo(req: UserRequest, res: Response) {
+		console.log("getVideo");
 		const videoId = req.params.videoID as string;
 
 		validateUserAndVideo(req, res, videoId).then((result) => {
 			if (!result) throw new NotFoundError("Video not found");
 
 			const { user } = result;
-
+			console.log("user:", user);
 			user
 				.populate({
 					path: "userVideos.videoId",
 					model: "Video",
 				})
 				.then((populatedUser) => {
+					console.log("populatedUser:", populatedUser);
 					const userVideo = populatedUser.userVideos.find(
 						(userVideo: UserVideosItem) =>
 							(userVideo.videoId as Video).id.toString() === videoId,
 					);
-
+					console.log("userVideo:", userVideo);
 					if (!userVideo) {
 						res.status(StatusCodes.NOT_FOUND.code).json({
 							message: "Video not found",
 						});
 						return null;
 					}
-
+					console.log("userVideo:", userVideo);
 					res.status(StatusCodes.SUCCESS.code).json(userVideo);
+				})
+				.catch((error) => {
+					if (error instanceof NotFoundError) {
+						res.status(StatusCodes.NOT_FOUND.code).json({
+							message: "Video not found",
+						});
+						return null;
+					}
+					console.error(error);
+					res.status(StatusCodes.INTERNAL_SERVER_ERROR.code).json({
+						message: "Internal server error",
+					});
 				});
 		});
 	}
@@ -203,10 +230,7 @@ Generate the ContentTable JSON based on this transcript.`,
 	getAllUserVideos(req: UserRequest, res: Response) {
 		UserModel.findOne({ email: req.user?.email }).then((user) => {
 			if (!user) {
-				res.status(StatusCodes.NOT_FOUND.code).json({
-					message: "User not found",
-				});
-				return null;
+				throw new NotFoundError("User not found");
 			}
 
 			// populate the userVideos
@@ -217,6 +241,18 @@ Generate the ContentTable JSON based on this transcript.`,
 				})
 				.then((populatedUser) => {
 					res.status(StatusCodes.SUCCESS.code).json(populatedUser.userVideos);
+				})
+				.catch((error) => {
+					if (error instanceof NotFoundError) {
+						res.status(StatusCodes.NOT_FOUND.code).json({
+							message: "User not found",
+						});
+						return;
+					}
+					console.error(error);
+					res.status(StatusCodes.INTERNAL_SERVER_ERROR.code).json({
+						message: "Internal server error",
+					});
 				});
 		});
 	}
