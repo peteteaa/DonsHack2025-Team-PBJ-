@@ -32,8 +32,34 @@ Also, this project uses pnpm workspace, which allows you to manage dependencies 
    - Create `.env` file in the backend directory:
 
    ```
-   PORT= (number of the port to use, this is optional, by default 4000)
+   BACKEND_PORT= (number of the port to use, this is optional, by default 4000)
+   STYTCH_PROJECT_ID= (your stytch project id)
+   STYTCH_SECRET= (your stytch secret)
+   DB_URL= (URI of the database)
+   TOKEN_KEY= (your token)
+   GEMINI_API_KEY= (your gemini api key)
+   API_URL= (URI of the API)
    ```
+
+### Running the Application
+
+- Start the application in backend directory:
+
+  ```bash
+  pnpm run dev
+  ```
+
+- Start the application in root directory:
+
+  ```bash
+  pnpm run dev:backend
+  ```
+
+  API_URL=
+
+  ```
+
+  ```
 
 ### Running the Application
 

@@ -37,6 +37,8 @@ Also, this project uses pnpm workspace, which allows you to manage dependencies 
      STYTCH_SECRET= (your stytch secret)
      DB_URL= (URI of the database)
      TOKEN_KEY= (your token)
+     GEMINI_API_KEY= (your gemini api key)
+     API_URL= (URI of the API)
      ```
 
 ### Running the Application
