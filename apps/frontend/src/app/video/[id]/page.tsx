@@ -39,6 +39,7 @@ declare global {
 
 interface YouTubePlayer {
   getCurrentTime: () => number;
+  seekTo: (timestamp: number) => void;
 }
 
 interface TranscriptItem {
@@ -84,16 +85,18 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showQuiz, setShowQuiz] = useState(false)
   const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null)
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
-  const [userAnswer, setUserAnswer] = useState("")
   const [showAnswer, setShowAnswer] = useState(false)
-
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [quizData, setQuizData] = useState<QuizData>({
     type: "multiple",
     Quiz: []
   })
 
-  const [questionType, setQuestionType] = useState<QuestionType>('open')
+  const [questionType, setQuestionType] = useState<QuestionType>('multiple')
+
+  const [player, setPlayer] = useState<YouTubePlayer | null>(null)
+
+  const [currentTimestamp, setCurrentTimestamp] = useState<number | null>(null)
 
   const isMultipleChoice = (question: QuizQuestion): question is MultipleChoiceQuestion => {
     return 'options' in question && 'correct' in question
@@ -103,21 +106,69 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
     return 'answer' in question
   }
 
-  const handleGenerateQuestions = () => {
+  const handleGenerateQuestions = async () => {
+    if (!player) return
+    const currentTime = Math.floor(player.getCurrentTime())
+    setCurrentTimestamp(currentTime)
+    
+    setShowQuiz(true)
+    setCurrentQuestionIndex(0)
+    setSelectedAnswer(null)
+    setShowAnswer(false)
+
     if (questionType === "multiple") {
       setQuizData({
         type: "multiple",
         Quiz: [
           {
-            question: "What is the first bad practice mentioned in object-oriented Python code?",
+            question: "What is the primary reason for using functions over classes in simple scenarios?",
             options: [
-              "Using inheritance",
-              "Having a function masquerading as a class",
-              "Not using encapsulation",
-              "Using static methods"
+              "To reduce complexity and boilerplate",
+              "To increase flexibility and reusability",
+              "To handle multi-threading operations"
             ],
-            correct: ["Having a function masquerading as a class"],
-            explanation: "The first bad practice discussed is using a class when a simple function would suffice. The example shows a data loader class that only has one method, which could be simplified into a function."
+            correct: ["To reduce complexity and boilerplate"],
+            explanation: "Functions are preferred in simple scenarios because they help reduce unnecessary complexity and boilerplate that comes with using classes. Classes are best suited for situations that require multiple methods, data access, and multiple instances."
+          },
+          {
+            question: "What does the term 'polymorphism' mean in object-oriented programming?",
+            options: [
+              "The ability to use multiple data types in the same variable",
+              "The ability to create classes from existing classes",
+              "The ability for different classes to be treated as instances of the same class"
+            ],
+            correct: ["The ability for different classes to be treated as instances of the same class"],
+            explanation: "Polymorphism allows different classes to be treated as instances of the same class, enabling method overriding and enhancing flexibility in the code."
+          },
+          {
+            question: "Which of the following is a key benefit of encapsulation in object-oriented programming?",
+            options: [
+              "Improved performance",
+              "Reduced complexity by hiding internal states",
+              "Increased inheritance flexibility"
+            ],
+            correct: ["Reduced complexity by hiding internal states"],
+            explanation: "Encapsulation helps by hiding the internal state of an object and exposing only the necessary functionality, reducing complexity and improving maintainability."
+          },
+          {
+            question: "What does inheritance allow in object-oriented programming?",
+            options: [
+              "Reusing code from other classes",
+              "Breaking the encapsulation principle",
+              "Managing multi-threaded processes"
+            ],
+            correct: ["Reusing code from other classes"],
+            explanation: "Inheritance allows one class to inherit properties and methods from another class, promoting code reuse and reducing redundancy."
+          },
+          {
+            question: "Which of the following best describes the purpose of a constructor in a class?",
+            options: [
+              "It initializes the object's state when the class is instantiated",
+              "It defines the behavior of the class's methods",
+              "It manages the class's memory allocation"
+            ],
+            correct: ["It initializes the object's state when the class is instantiated"],
+            explanation: "The constructor is a special method in a class that is automatically invoked when an object is created. Its purpose is to initialize the object's state and set up initial values for its properties."
           }
         ]
       });
@@ -128,40 +179,44 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
           {
             question: "Why should you avoid using classes with static methods for utility functions in Python?",
             answer: "Using classes with static methods for utility functions adds unnecessary complexity and boilerplate code. In Python, it's better to use modules instead, as they provide a cleaner way to organize code without the overhead of class instantiation or static method calls. This makes the code simpler to read and maintain."
+          },
+          {
+            question: "Explain the concept of composition over inheritance and its benefits.",
+            answer: "Composition over inheritance means favoring object composition (combining simple objects to build more complex ones) rather than using inheritance hierarchies. This approach reduces coupling between classes, improves code maintainability, and provides more flexibility in design. It helps avoid problems like the fragile base class and deep inheritance chains."
+          },
+          {
+            question: "What are the main drawbacks of using complex inheritance structures in Python?",
+            answer: "Complex inheritance structures can lead to several problems: they make code harder to understand and maintain, create tight coupling between classes, make changes more difficult due to the ripple effect through the inheritance chain, and can lead to the 'diamond problem' in multiple inheritance. It's often better to use composition or simpler inheritance structures."
           }
         ]
       });
     }
-    setCurrentQuestionIndex(0);
-    setSelectedAnswer(null);
-    setShowAnswer(false);
   }
 
-  const handleAnswerSelect = (option: string) => {
-    setSelectedAnswer(option);
-    const currentQuestion = quizData.Quiz[currentQuestionIndex];
-    
-    if (isMultipleChoice(currentQuestion) && option === currentQuestion.correct[0]) {
-      // Wait a bit to show the correct answer before moving to next question
+  const handleAnswerSelect = (answer: string) => {
+    setSelectedAnswer(answer)
+    const currentQuestion = quizData.Quiz[currentQuestionIndex]
+    if (isMultipleChoice(currentQuestion) && answer === currentQuestion.correct[0]) {
       setTimeout(() => {
         if (currentQuestionIndex < quizData.Quiz.length - 1) {
-          setCurrentQuestionIndex(currentQuestionIndex + 1);
-          setSelectedAnswer(null);
+          setCurrentQuestionIndex(prevIndex => prevIndex + 1)
+          setSelectedAnswer(null)
+          setShowAnswer(false)
         }
-      }, 1500);
+      }, 1500)
     }
   }
 
   const handleShortAnswerSubmit = () => {
-    setShowAnswer(true);
-    // Wait for user to read the answer before moving to next question
-    setTimeout(() => {
-      if (currentQuestionIndex < quizData.Quiz.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1);
-        setSelectedAnswer(null);
-        setShowAnswer(false);
-      }
-    }, 3000);
+    setShowAnswer(true)
+    // Only move to next question if there is one
+    if (currentQuestionIndex < quizData.Quiz.length - 1) {
+      setTimeout(() => {
+        setCurrentQuestionIndex(prevIndex => prevIndex + 1)
+        setSelectedAnswer(null)
+        setShowAnswer(false)
+      }, 3000)
+    }
   }
 
   const formatTimestamp = (seconds: number) => {
@@ -170,16 +225,12 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`
   }
 
-  const [player, setPlayer] = useState<YouTubePlayer | null>(null)
-
   useEffect(() => {
     // Load YouTube API
     const tag = document.createElement('script')
     tag.src = 'https://www.youtube.com/iframe_api'
     const firstScriptTag = document.getElementsByTagName('script')[0]
     firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag)
-
-    let interval: NodeJS.Timeout | undefined
 
     // Initialize player when API is ready
     window.onYouTubeIframeAPIReady = () => {
@@ -191,61 +242,38 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
           autoplay: 0,
           modestbranding: 1,
           rel: 0
-        },
-        events: {
-          onStateChange: (event: { data: number }) => {
-            if (event.data === window.YT.PlayerState.PLAYING) {
-              // Update time every second while playing
-              interval = setInterval(() => {
-                // We'll use this for future features
-                newPlayer.getCurrentTime()
-              }, 1000)
-            } else {
-              // Clear interval when not playing
-              if (interval) {
-                clearInterval(interval)
-                interval = undefined
-              }
-            }
-          }
         }
       })
       setPlayer(newPlayer)
     }
-
-    return () => {
-      if (interval) {
-        clearInterval(interval)
-      }
-    }
   }, [id])
-
-  const handleGetTimestamp = () => {
-    if (player) {
-      const time = Math.floor(player.getCurrentTime())
-      navigator.clipboard.writeText(time.toString())
-      alert(`Current timestamp (${time}s) copied to clipboard!`)
-    }
-  }
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <div className="flex justify-between items-center mb-4">
-        <ThemeToggle />
-        <Button
-          variant="ghost"
-          onClick={handleGetTimestamp}
-          className="text-sm"
-        >
-          Get Current Timestamp
-        </Button>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-2xl font-bold text-primary">DonsFlow</h1>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <Button
+            onClick={() => setIsFullscreen(!isFullscreen)}
+            variant="outline"
+            size="icon"
+          >
+            {isFullscreen ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <Card className="transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 group">
             <CardHeader className="pb-2">
-              <CardTitle className="group-hover:text-primary group-hover:brightness-125">INSERT TITLE HERE!!!!!!</CardTitle>
+              <CardTitle className="group-hover:text-primary group-hover:brightness-125">
+                {currentTimestamp !== null && (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    Current Time: {formatTimestamp(currentTimestamp)}
+                  </span>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="relative pt-[56.25%]">
@@ -359,6 +387,7 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
                                     isCorrect ? "bg-green-500 hover:bg-green-600" : 
                                     isIncorrect ? "bg-red-500 hover:bg-red-600" : ""
                                   }`}
+                                  disabled={false}
                                 >
                                   {option}
                                 </Button>
@@ -372,27 +401,47 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
                                 placeholder="Type your answer here..."
                                 className="w-full h-32 p-2 border rounded-md"
                               />
-                              <Button
-                                onClick={handleShortAnswerSubmit}
-                                variant="outline"
-                                className="w-full"
-                              >
-                                Submit Answer
-                              </Button>
+                              <div className="flex gap-2">
+                                <Button
+                                  onClick={handleShortAnswerSubmit}
+                                  variant="outline"
+                                  className="w-full"
+                                  disabled={!selectedAnswer || showAnswer}
+                                >
+                                  Check Answer
+                                </Button>
+                                {showAnswer && currentQuestionIndex < quizData.Quiz.length - 1 && (
+                                  <Button
+                                    onClick={() => {
+                                      setCurrentQuestionIndex(prevIndex => prevIndex + 1)
+                                      setSelectedAnswer(null)
+                                      setShowAnswer(false)
+                                    }}
+                                    variant="default"
+                                    className="w-full"
+                                  >
+                                    Next Question
+                                  </Button>
+                                )}
+                              </div>
+                              {showAnswer && isOpenResponse(quizData.Quiz[currentQuestionIndex]) && (
+                                <div className="mt-4 p-4 bg-muted rounded-lg">
+                                  <p className="font-semibold">Sample Answer:</p>
+                                  <p>{quizData.Quiz[currentQuestionIndex].answer}</p>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
-                        {showAnswer && questionType === "open" && isOpenResponse(quizData.Quiz[currentQuestionIndex]) && (
-                          <div className="mt-4 p-4 bg-muted rounded-lg">
-                            <p className="font-semibold">Sample Answer:</p>
-                            <p>{quizData.Quiz[currentQuestionIndex].answer}</p>
-                          </div>
-                        )}
                         {selectedAnswer && questionType === "multiple" && isMultipleChoice(quizData.Quiz[currentQuestionIndex]) && (
-                          <div className="mt-4 p-4 bg-muted rounded-lg">
-                            <p className="font-semibold">Explanation:</p>
-                            <p>{quizData.Quiz[currentQuestionIndex].explanation}</p>
-                          </div>
+                          <>
+                            {selectedAnswer === quizData.Quiz[currentQuestionIndex].correct[0] && (
+                              <div className="mt-4 p-4 bg-muted rounded-lg">
+                                <p className="font-semibold">Explanation:</p>
+                                <p>{quizData.Quiz[currentQuestionIndex].explanation}</p>
+                              </div>
+                            )}
+                          </>
                         )}
                       </>
                     )}
@@ -427,9 +476,13 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
           </Card>
         </div>
 
-        <div>
-          <ContentCard contentTable={contentTable} /> 
-          {/* Notes functionality will be implemented in ContentCard component */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className={`w-full ${isFullscreen ? 'hidden' : ''}`}>
+            <ContentCard 
+              contentTable={contentTable} 
+              currentTimestamp={currentTimestamp}
+            />
+          </div>
         </div>
       </div>
     </div>
