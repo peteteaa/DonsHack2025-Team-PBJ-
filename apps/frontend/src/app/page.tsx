@@ -68,7 +68,7 @@ export default function Home() {
 
 	const handleStart = () => {
 		router.push("/youtube");
-	}
+	};
 
 	if (isLoading) {
 		return (

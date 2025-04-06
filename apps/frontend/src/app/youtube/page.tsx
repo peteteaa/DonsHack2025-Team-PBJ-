@@ -86,7 +86,7 @@ export default function YouTubePage() {
 				setError("Failed to process the video URL");
 				// if there is an error then you can try again
 				setIsSubmitting(false);
-			})
+			});
 	};
 
 	return (
@@ -124,7 +124,7 @@ export default function YouTubePage() {
 								type="text"
 								value={url}
 							/>
-							<Button type="submit" disabled={isSubmitting}>
+							<Button disabled={isSubmitting} type="submit">
 								{isSubmitting ? "Loading..." : "Load Video"}
 							</Button>
 						</div>
