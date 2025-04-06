@@ -9,10 +9,11 @@ import {
 	AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
+import { Home as HomeIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { VideoPage as VideoPageType } from "@shared/types";
 import { Maximize2, Minimize2 } from "lucide-react";
-import { useParams } from "next/navigation";
+import {useParams, useRouter} from "next/navigation";
 import { useEffect, useState } from "react";
 
 // YouTube IFrame API types
@@ -85,6 +86,7 @@ type QuestionType = "open" | "multiple";
 
 const VideoPage = ({ contentTable }: VideoPageProps) => {
 	const params = useParams();
+	const router = useRouter();
 	const id = params?.id as string;
 	const [isFullscreen, setIsFullscreen] = useState(false);
 	const [showQuiz, setShowQuiz] = useState(false);
@@ -334,11 +336,10 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 						<div className="flex gap-4">
 							<ThemeToggle />
 							<Button
-								onClick={() => setIsFullscreen(!isFullscreen)}
+								onClick={() => router.push('/')}
 								size="icon"
 								variant="outline"
-							>
-								{isFullscreen ? <Minimize2 /> : <Maximize2 />}
+							><HomeIcon />
 							</Button>
 						</div>
 					</div>
