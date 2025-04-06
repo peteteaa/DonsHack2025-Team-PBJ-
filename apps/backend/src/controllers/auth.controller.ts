@@ -14,7 +14,7 @@ const cookieOptions: CookieOptions = {
 	httpOnly: true,
 	secure: EnvConfig().environment === "production",
 	sameSite: "strict" as const,
-	maxAge: 60 * 60 * 1000, // 1 hour in milliseconds
+	maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days in milliseconds
 };
 
 const emailSchema = z.object({
