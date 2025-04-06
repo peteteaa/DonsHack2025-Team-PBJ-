@@ -16,14 +16,32 @@ interface Chapter {
 
 interface ContentCardProps {
   contentTable: Chapter[]
+  currentTimestamp: number | null
 }
 
-const ContentCard = ({ contentTable }: ContentCardProps) => {
+const ContentCard = ({ contentTable, currentTimestamp }: ContentCardProps) => {
   const [isNotesView, setIsNotesView] = useState(false)
   const [notes, setNotes] = useState("")
+  const [savedNotes, setSavedNotes] = useState<{text: string, videoTime: number | null}[]>([])
 
   const handleNotesChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setNotes(event.target.value)
+  }
+
+  const formatVideoTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60)
+    const remainingSeconds = Math.floor(seconds % 60)
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
+  }
+
+  const handleSaveNotes = () => {
+    if (notes.trim()) {
+      setSavedNotes([...savedNotes, { 
+        text: notes, 
+        videoTime: currentTimestamp 
+      }])
+      setNotes("")
+    }
   }
 
   const toggleView = () => {
@@ -43,21 +61,8 @@ const ContentCard = ({ contentTable }: ContentCardProps) => {
         </Button>
       </CardHeader>
       <CardContent>
-        {isNotesView ? (
-          <div>
-            <h3 className="text-base font-semibold mb-1">Your Notes</h3>
-            <textarea
-              value={notes}
-              onChange={handleNotesChange}
-              className="w-full h-40 p-2 border rounded bg-background mb-2"
-              placeholder="Write your notes here..."
-            />
-            <Button variant="outline" className="w-full">
-              Save Notes
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
+        <div className="flex gap-6">
+          <div className={`${isNotesView ? 'hidden' : 'w-2/3'} space-y-4`}>
             {contentTable.map((chapter, index) => (
               <div key={index} className="border-b pb-4 last:border-0">
                 <h3 className="text-base font-semibold mb-1">{chapter.chapter}</h3>
@@ -65,7 +70,36 @@ const ContentCard = ({ contentTable }: ContentCardProps) => {
               </div>
             ))}
           </div>
-        )}
+          
+          <div className={`${isNotesView ? 'w-full' : 'w-1/3'}`}>
+            {isNotesView && (
+              <div className="mb-6">
+                <h3 className="text-base font-semibold mb-1">Your Notes</h3>
+                <textarea
+                  value={notes}
+                  onChange={handleNotesChange}
+                  className="w-full h-40 p-2 border rounded bg-background mb-2"
+                  placeholder="Write your notes here..."
+                />
+                <Button variant="outline" className="w-full mb-4" onClick={handleSaveNotes}>
+                  Save Notes
+                </Button>
+              </div>
+            )}
+            <div className="space-y-2">
+              {savedNotes.map((note, index) => (
+                <div key={index} className="p-2 border rounded">
+                  <p className="text-sm">{note.text}</p>
+                  {note.videoTime !== null && (
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formatVideoTime(note.videoTime)}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )
