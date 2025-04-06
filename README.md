@@ -138,3 +138,4 @@ This repo is deployed on Heroku using the heroku integrated GitHub deployment.
 - DB_URL
 - TOKEN_KEY
 - NEXT_PUBLIC_API_URL
+- GEMINI_API_KEY
