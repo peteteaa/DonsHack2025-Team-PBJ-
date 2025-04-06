@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
+import type { UserNoteItem } from "@shared/types";
 
 interface Chapter {
 	chapter: string;
@@ -17,36 +18,25 @@ interface Chapter {
 interface ContentCardProps {
 	contentTable: Chapter[];
 	currentTimestamp: number | null;
+	savedNotes: Array<UserNoteItem & { _id: string }>;
+	note: string;
+	onSetNote: (note: string) => void;
+	onSaveNotes: (notes: string) => void;
 }
 
-const ContentCard = ({ contentTable, currentTimestamp }: ContentCardProps) => {
+const ContentCard = ({
+	contentTable,
+	savedNotes,
+	onSaveNotes,
+	onSetNote,
+	note,
+}: ContentCardProps) => {
 	const [isNotesView, setIsNotesView] = useState(false);
-	const [notes, setNotes] = useState("");
-	const [savedNotes, setSavedNotes] = useState<
-		{ text: string; videoTime: number | null }[]
-	>([]);
-
-	const handleNotesChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-		setNotes(event.target.value);
-	};
 
 	const formatVideoTime = (seconds: number): string => {
 		const minutes = Math.floor(seconds / 60);
 		const remainingSeconds = Math.floor(seconds % 60);
 		return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-	};
-
-	const handleSaveNotes = () => {
-		if (notes.trim()) {
-			setSavedNotes([
-				...savedNotes,
-				{
-					text: notes,
-					videoTime: currentTimestamp,
-				},
-			]);
-			setNotes("");
-		}
 	};
 
 	const toggleView = () => {
@@ -91,13 +81,13 @@ const ContentCard = ({ contentTable, currentTimestamp }: ContentCardProps) => {
 								<h3 className="text-base font-semibold mb-1">Your Notes</h3>
 								<textarea
 									className="w-full h-40 p-2 border rounded bg-background mb-2"
-									onChange={handleNotesChange}
+									onChange={(e) => onSetNote(e.target.value)}
 									placeholder="Write your notes here..."
-									value={notes}
+									value={note}
 								/>
 								<Button
 									className="w-full mb-4"
-									onClick={handleSaveNotes}
+									onClick={() => onSaveNotes(note)}
 									variant="outline"
 								>
 									Save Notes
@@ -106,11 +96,11 @@ const ContentCard = ({ contentTable, currentTimestamp }: ContentCardProps) => {
 						)}
 						<div className="space-y-2">
 							{savedNotes.map((note) => (
-								<div className="p-2 border rounded" key={note.videoTime}>
+								<div className="p-2 border rounded" key={note._id}>
 									<p className="text-sm">{note.text}</p>
-									{note.videoTime !== null && (
+									{note.moment !== null && (
 										<p className="text-xs text-muted-foreground mt-1">
-											{formatVideoTime(note.videoTime)}
+											{formatVideoTime(note.moment)}
 										</p>
 									)}
 								</div>

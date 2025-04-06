@@ -46,7 +46,7 @@ export interface TranscriptItem {
 export interface VideoPage {
 	_id: string;
 	flashCard: FlashCardItem[];
-	notes: UserNoteItem[];
+	notes: Array<UserNoteItem & { _id: string }>;
 	videoId: VideoId;
 }
 interface VideoId {
@@ -62,3 +62,29 @@ interface ContentTableItem {
 	summary: string;
 	transcript: TranscriptItem[];
 }
+interface TranscriptItem {
+	end: number;
+	start: number;
+	text: string;
+}
+
+export interface QuizData {
+	quiz: QuizOpenItem[] | QuizMultipleItem[];
+	type: QuestionType;
+}
+
+export interface QuizOpenItem {
+	answer: string;
+	explanation: string;
+	question: string;
+}
+
+export interface QuizMultipleItem {
+	answer: string;
+	explanation: string;
+	question: string;
+	options: string[];
+	correct: string[];
+}
+
+type QuestionType = "open" | "multiple";
