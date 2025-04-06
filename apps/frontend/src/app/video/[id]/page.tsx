@@ -657,81 +657,28 @@ const VideoPage = ({ contentTable }: VideoPageProps) => {
 };
 
 export default function Page() {
-	// Use the provided content table
-	const contentTable = [
-		{
-			chapter: "Function vs. Class for Simple Operations",
-			summary:
-				"Avoid using a class when a simple function will suffice. Classes should be reserved for situations with multiple methods, data access needs, and multiple instances. Using functions simplifies the code and reduces boilerplate.",
-			transcript: [
-				{
-					end: 79.88,
-					start: 0.12,
-					text: "is your objectoriented python code turning into unmanageable spaghetti today I&amp;#39;ll cover bad practices to avoid at all costs and what to do instead ...",
-				},
-			],
-		},
-		{
-			chapter: "Modules vs. Classes with Static Methods",
-			summary:
-				"Instead of using classes with static methods for utility functions, leverage Python modules. Modules provide a cleaner way to organize code without the overhead of class instantiation or static method calls.",
-			transcript: [
-				{
-					end: 387.599,
-					start: 79.92,
-					text: "needs like so this has simplified the code a lot let me run this just to make sure it works and it does this is the data that it has loaded from the file if you&amp;#39;re using classes a lot in this way just containers for methods that often adds unnecessary complexity and boiler plate code because then you have to create an instance of the class to call that method ...",
-				},
-			],
-		},
-		{
-			chapter: "Favor Composition over Inheritance",
-			summary:
-				"Avoid overly complex inheritance structures. Instead of using inheritance to define roles, consider using composition with role classes or enums to reduce coupling and improve code maintainability. Flattening hierarchies simplifies the code.",
-			transcript: [
-				{
-					end: 563.68,
-					start: 387.599,
-					text: "the third bad practice is creating overly complex inheritance structures often people try to avoid or decouple code by using inheritance and this often just makes things worse ...",
-				},
-			],
-		},
-		{
-			chapter: "Rely on Abstractions (Dependency Injection and Protocols)",
-			summary:
-				"Avoid directly instantiating concrete classes within methods. Instead, use dependency injection to pass instances and leverage abstractions like protocols or abstract base classes to decouple code, improve flexibility, and facilitate testing by enabling the use of mock objects.",
-			transcript: [
-				{
-					end: 626.72,
-					start: 563.68,
-					text: "the fourth bad practice that you don&amp;#39;t rely on abstractions basically directly calling methods constructing objects from other classes Within a method or a function here you see an example of that I have an order class that has a customer email a product ID and a quantity very basic and they also have an SMTP email service which is used to connect to a server and then sending an email to a customer ...",
-				},
-			],
-		},
-		{
-			chapter: "Importance of Encapsulation",
-			summary:
-				"Implement encapsulation to hide implementation details and maintain internal consistency. Use methods and properties to control access and modification of internal variables. However, for simple data-focused classes (data classes), direct attribute access can be more practical.",
-			transcript: [
-				{
-					end: 1132.679,
-					start: 1002.88,
-					text: "the fifth bad practice is do not have encapsulation if you have a class in this case there&amp;#39;s a bank account class that has a balance and the way that we work with the bank account in this example is that we directly modify the balance we subtract 50 we add 100 encapsulation means that you hide implementation details from the outside world this is what methods properties allow you to do in a class ...",
-				},
-			],
-		},
-		{
-			chapter: "Avoid Overusing Mixins (Favor Composition)",
-			summary:
-				"Overusing mixins leads to complicated and hard-to-trace class hierarchies. Consider using composition instead. If classes are simple, functions might be an even better alternative.",
-			transcript: [
-				{
-					end: 1483.64,
-					start: 1132.679,
-					text: "and by the way if you enjoy these types of discussions make sure to join my Discord server at discord. iron. codes it&amp;#39;s a really awesome Community love for you to join the final bad practice I want to talk about is mixin yes overusing mixins to add functionality to existing classes can really lead to complicated and hard to trace class hierarchies for example here I have an order class I have a log mix in which has a log methods I have a save mix in which has a save method and then I&amp;#39;m mixing in those features into other classes like processing in order and counseling an order ...",
-				},
-			],
-		},
-	];
+	const [videoPageData, setVideoPageData] = useState<VideoPageType | null>(
+		null
+	);
+	const params = useParams();
+	const id = params?.id as string;
 
-	return <VideoPage contentTable={contentTable} />;
+	useEffect(() => {
+		const fetchVideoPage = async () => {
+			try {
+				const response = await fetch(`/api/video/${id}`);
+				if (!response.ok) {
+					throw new Error("Failed to fetch video page data");
+				}
+				const data = await response.json();
+				setVideoPageData(data);
+			} catch (error) {
+				console.error("Error fetching video page:", error);
+			}
+		};
+
+		fetchVideoPage();
+	}, [id]);
+
+	return <VideoPage contentTable={videoPageData?.videoId.contentTable ?? []} />;
 }
