@@ -2,6 +2,7 @@
 @token =
 @email =
 @video_id =
+@note_id =
 
 ### test api ###
 GET {{base_url}}
@@ -49,4 +50,12 @@ Content-Type: application/json
       "moment": 0,
       "text": "This is a note for the beginning of the video"
     }
+}
+
+### patch a note for specific video of user ###
+PATCH {{base_url}}/video/{{video_id}}/notes/update/{{note_id}}
+Content-Type: application/json
+
+{
+  "moment": 0
 }

@@ -62,9 +62,42 @@ class NotesController {
 	/**
 	 * Update notes
 	 */
-	patch(_req: UserRequest, res: Response) {
-		console.log("update notes");
-		res.status(StatusCodes.SUCCESS.code).json();
+	patch(req: UserRequest, res: Response) {
+		const videoId = req.params.videoID as string;
+		const noteId = req.params.id as string;
+		const { moment, text } = req.body;
+
+		validateUserAndVideo(req, res, videoId).then((result) => {
+			if (!result) return;
+
+			const { user, userVideo } = result;
+			const note = userVideo.notes.id(noteId);
+
+			if (!note) {
+				res.status(StatusCodes.NOT_FOUND.code).json({
+					message: "Note not found",
+				});
+				return;
+			}
+
+			if (moment !== undefined) {
+				note.moment = moment;
+			}
+			if (text !== undefined) {
+				note.text = text;
+			}
+
+			user.save()
+				.then(() => {
+					res.status(StatusCodes.SUCCESS.code).json(note);
+				})
+				.catch((error) => {
+					console.error(error);
+					res.status(StatusCodes.INTERNAL_SERVER_ERROR.code).json({
+						message: "Internal server error",
+					});
+				});
+		});
 	}
 }
 
