@@ -1,7 +1,7 @@
 // cspell: words youtu
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { GenerateContentResult } from "@google/generative-ai";
-import type { ContentTable, UserVideosItem, Video } from "@shared/types";
+import type { ContentTable, VideoPage } from "@shared/types";
 import type { Response } from "express";
 import { z } from "zod";
 import { EnvConfig } from "../config/env.config";
@@ -183,48 +183,55 @@ Generate the ContentTable JSON based on this transcript.`,
 	}
 
 	getVideo(req: UserRequest, res: Response) {
-		console.log("getVideo");
 		const videoId = req.params.videoID as string;
 
-		validateUserAndVideo(req, res, videoId).then((result) => {
-			if (!result) throw new NotFoundError("Video not found");
+		if (!req.user) {
+			res.status(StatusCodes.UNAUTHORIZED.code).json({
+				message: "User not found",
+			});
+			return;
+		}
 
-			const { user } = result;
-			console.log("user:", user);
-			user
-				.populate({
-					path: "userVideos.videoId",
-					model: "Video",
-				})
-				.then((populatedUser) => {
-					console.log("populatedUser:", populatedUser);
-					const userVideo = populatedUser.userVideos.find(
-						(userVideo: UserVideosItem) =>
-							(userVideo.videoId as Video).id.toString() === videoId,
-					);
-					console.log("userVideo:", userVideo);
-					if (!userVideo) {
-						res.status(StatusCodes.NOT_FOUND.code).json({
-							message: "Video not found",
-						});
-						return null;
-					}
-					console.log("userVideo:", userVideo);
-					res.status(StatusCodes.SUCCESS.code).json(userVideo);
-				})
-				.catch((error) => {
-					if (error instanceof NotFoundError) {
-						res.status(StatusCodes.NOT_FOUND.code).json({
-							message: "Video not found",
-						});
-						return null;
-					}
-					console.error(error);
-					res.status(StatusCodes.INTERNAL_SERVER_ERROR.code).json({
-						message: "Internal server error",
+		const videoIndex = validateUserAndVideo(req.user, videoId);
+		if (videoIndex === -1) {
+			res.status(StatusCodes.NOT_FOUND.code).json({
+				message: "Video not found",
+			});
+			return;
+		}
+		const userVideo = req.user.userVideos?.[videoIndex];
+
+		videoModel
+			.findOne({ _id: videoId })
+			.then((video) => {
+				if (!video) {
+					throw new NotFoundError("Video not found");
+				}
+				const videoData: VideoPage = {
+					videoId: {
+						_id: video._id.toString(),
+						contentTable: video.contentTable,
+						title: video.title,
+						transcript: video.transcript,
+						url: video.url,
+					},
+					flashCard: userVideo?.flashCard || [],
+					notes: userVideo?.notes || [],
+				};
+				res.status(StatusCodes.SUCCESS.code).json(videoData);
+			})
+			.catch((error) => {
+				if (error instanceof NotFoundError) {
+					res.status(StatusCodes.NOT_FOUND.code).json({
+						message: "Video not found",
 					});
+					return;
+				}
+				console.error(error);
+				res.status(StatusCodes.INTERNAL_SERVER_ERROR.code).json({
+					message: "Internal server error",
 				});
-		});
+			});
 	}
 
 	getAllUserVideos(req: UserRequest, res: Response) {

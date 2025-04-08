@@ -2,7 +2,7 @@ import type { CookieOptions, Request, Response } from "express";
 import type { JwtPayload } from "jsonwebtoken";
 import { z } from "zod";
 import { EnvConfig } from "../config/env.config";
-import { stytchClient } from "../config/stytch";
+import { stytchClient } from "../config/stytch.config";
 import User from "../models/user.model";
 import StatusCodes from "../types/response-codes";
 import {

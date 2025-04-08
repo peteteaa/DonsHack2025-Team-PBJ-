@@ -6,6 +6,6 @@ const router = Router({ mergeParams: true });
 
 router.get("/", FlashcardsController.read);
 router.post("/", FlashcardsController.create);
-router.patch("/update/:id", FlashcardsController.patch);
+router.patch("/:id", FlashcardsController.patch);
 
 export default router;

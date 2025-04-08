@@ -1,9 +1,9 @@
 @base_url = http://localhost:4000/api
 @token =
 @email = 
-@video_id =67f1b1a81eb89d1810c406fa
-@note_id =
-@flashcard_id =
+@video_id =
+@note_id = 
+@flashcard_id = 
 
 ### test api ###
 GET {{base_url}}
@@ -52,17 +52,18 @@ Content-Type: application/json
 
 {
     "note": {
-      "moment": 0,
+      "moment": 10,
       "text": "This is a note for the beginning of the video"
     }
 }
 
 ### patch a note for specific video of user ###
-PATCH {{base_url}}/video/{{video_id}}/notes/update/{{note_id}}
+PATCH {{base_url}}/video/{{video_id}}/notes/{{note_id}}
 Content-Type: application/json
 
 {
-  "moment": 0
+  "moment": 100,
+  "text": "test"
 }
 
 ### get user flashcards for specific video ###
@@ -81,11 +82,10 @@ Content-Type: application/json
 }
 
 ### patch a flashcard for specific video of user ###
-PATCH {{base_url}}/video/{{video_id}}/flashcards/update/{{flashcard_id}}
+PATCH {{base_url}}/video/{{video_id}}/flashcards/{{flashcard_id}}
 Content-Type: application/json
 
 {
-  "front": "What is the capital of France?",
   "back": "Paris"
 }
 

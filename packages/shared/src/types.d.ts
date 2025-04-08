@@ -14,6 +14,7 @@ export interface Video {
 
 type UserNotes = UserNoteItem[];
 export interface UserNoteItem {
+	_id: string;
 	moment: number;
 	text: string;
 }
@@ -25,6 +26,7 @@ interface UserVideosItem {
 	videoId: string | Video;
 }
 interface FlashCardItem {
+	_id: string;
 	back: string;
 	front: string;
 }
@@ -44,13 +46,11 @@ export interface TranscriptItem {
 }
 
 export interface VideoPage {
-	_id: string;
 	flashCard: FlashCardItem[];
-	notes: Array<UserNoteItem & { _id: string }>;
+	notes: UserNoteItem[];
 	videoId: VideoId;
 }
 interface VideoId {
-	__v: number;
 	_id: string;
 	contentTable: ContentTableItem[];
 	title: string;

@@ -6,6 +6,6 @@ const router = Router({ mergeParams: true });
 
 router.get("/", NotesController.read);
 router.post("/", NotesController.create);
-router.patch("/update/:id", NotesController.patch);
+router.patch("/:id", NotesController.patch);
 
 export default router;

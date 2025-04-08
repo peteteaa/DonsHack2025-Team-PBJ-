@@ -14,6 +14,10 @@ const userSchema = new Schema({
 			},
 			flashCard: [
 				{
+					_id: {
+						type: String,
+						required: true,
+					},
 					front: {
 						type: String,
 						required: true,
@@ -26,6 +30,10 @@ const userSchema = new Schema({
 			],
 			notes: [
 				{
+					_id: {
+						type: String,
+						required: true,
+					},
 					moment: {
 						type: Number,
 						required: true,

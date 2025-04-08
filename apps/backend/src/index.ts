@@ -6,7 +6,7 @@ import next from "next";
 
 // Your config / DB
 import { EnvConfig } from "./config/env.config";
-import connectDB from "./config/mongoose";
+import connectDB from "./config/mongoose.config";
 import routes from "./routes";
 
 const dev = process.env.NODE_ENV !== "production";
