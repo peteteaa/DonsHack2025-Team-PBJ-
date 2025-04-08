@@ -1,10 +1,12 @@
-// cspell: words youtu
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { GenerateContentResult } from "@google/generative-ai";
 import type { ContentTable, VideoPage } from "@shared/types";
 import type { Response } from "express";
-import { z } from "zod";
-import { EnvConfig } from "../config/env.config";
+import {
+	generationConfig,
+	model,
+	transcriptPrompt,
+} from "../config/gemini.config";
+import { youtubeUrlSchema } from "../config/zod.config";
 import userModel from "../models/user.model";
 import UserModel from "../models/user.model";
 import videoModel from "../models/video.model";
@@ -14,51 +16,6 @@ import { BadRequestError, NotFoundError } from "../utils/errors";
 import { getVideoTitle } from "../utils/get_video_title";
 import { fetchTranscript, formatTranscript } from "../utils/transcript";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
-
-const apiKey = EnvConfig().gemini.apiKey;
-const genAI = new GoogleGenerativeAI(apiKey);
-
-const model = genAI.getGenerativeModel({
-	model: "gemini-2.0-flash",
-});
-
-const generationConfig = {
-	temperature: 1,
-	topP: 0.95,
-	topK: 40,
-	maxOutputTokens: 8192,
-	responseModalities: [],
-	responseMimeType: "text/plain",
-};
-
-const youtubeUrlSchema = z.string().refine((url) => {
-	const pattern =
-		/^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
-	return pattern.test(url);
-}, "Invalid YouTube video URL");
-
-const transcriptPrompt = `Here is a transcript JSON where each item contains "id", "start", "end", and "text" fields. Your task is to analyze this transcript and transform it into a structured ContentTable format.
-
-The expected structure is:
-
-[
-  {
-    "chapter": string,
-    "summary": string,
-    "transcript_start_id": number,
-    "transcript_end_id": number
-  }
-]
-
-Your task is to:
-1. Analyze the transcript and divide it into logical chapters based on topic changes
-2. For each chapter:
-   - Create a concise, descriptive title
-   - Write a brief summary of the main points
-   - Include the transcript_start_id (id of first transcript in chapter) and transcript_end_id (id of last transcript in chapter)
-3. Structure the response exactly as shown above
-
-IMPORTANT: Return ONLY a valid JSON object with the structure shown. Do not include any markdown formatting, code blocks, or additional text in your response.`;
 
 class VideoController {
 	async processVideo(req: UserRequest, res: Response) {
@@ -97,6 +54,13 @@ class VideoController {
 			const formattedTranscript = formatTranscript(transcript);
 			console.log("Transcript formatted successfully");
 
+			const finalPrompt = `${transcriptPrompt}
+
+Here is the input transcript JSON:
+${JSON.stringify(formattedTranscript, null, 2)}
+
+Generate the ContentTable JSON based on this transcript.`;
+
 			const chatSession = model.startChat({
 				generationConfig,
 				history: [
@@ -104,33 +68,19 @@ class VideoController {
 						role: "user",
 						parts: [
 							{
-								text: `${transcriptPrompt}
-
-Here is the input transcript JSON:
-${JSON.stringify(formattedTranscript, null, 2)}
-
-Generate the ContentTable JSON based on this transcript.`,
+								text: finalPrompt,
 							},
 						],
 					},
 				],
 			});
 			console.log("Chat session started");
-			const result: GenerateContentResult =
-				await chatSession.sendMessage("INSERT_INPUT_HERE");
+			const result: GenerateContentResult = await chatSession.sendMessage("");
 			console.log("Chat session completed");
-			console.log({ result });
 			const responseText = result.response.text();
-			console.log(
-				"-------------------------------------------------------------------------",
-			);
-			console.log(responseText);
+
 			// Remove any markdown formatting or extra text
 			const jsonStr = responseText.replace(/```json\n|\n```|```/g, "").trim();
-			console.log(
-				"-------------------------------------------------------------------------",
-			);
-			console.log(jsonStr);
 			const geminiContentTable: GeminiResponse[] = JSON.parse(jsonStr);
 
 			const contentTable: ContentTable = geminiContentTable.map(
@@ -160,12 +110,8 @@ Generate the ContentTable JSON based on this transcript.`,
 
 			res.status(StatusCodes.SUCCESS.code).json({
 				videoId: createdVideo._id,
-				url: createdVideo.url,
-				title: createdVideo.title,
-				transcript: createdVideo.transcript,
-				contentTable: createdVideo.contentTable,
 			});
-		} catch (error: unknown) {
+		} catch (error) {
 			console.error("Error in video processing:", error);
 			if (
 				error instanceof Error &&

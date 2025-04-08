@@ -39,3 +39,9 @@ export const notePatchSchema = NoteSchema.omit({ _id: true })
 	.refine((data) => data.moment !== undefined || data.text !== undefined, {
 		message: "At least one field (moment or text) must be provided",
 	});
+
+export const youtubeUrlSchema = z.string().refine((url) => {
+	const pattern =
+		/^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})$/;
+	return pattern.test(url);
+}, "Invalid YouTube video URL");
