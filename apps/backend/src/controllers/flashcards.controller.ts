@@ -1,8 +1,7 @@
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import { Types } from "mongoose";
 import { FlashcardSchema, flashcardPatchSchema } from "../config/zod.config";
 import userModel from "../models/user.model";
-import type { UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
 import { NotFoundError } from "../utils/errors";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
@@ -13,34 +12,21 @@ import { validateUserAndVideo } from "../utils/validate_video_and_user";
 class FlashcardsController {
 	/**
 	 * Get flashcards of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	readAll(req: UserRequest, res: Response) {
+	readAll(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "Video not found",
-			});
-			return;
-		}
+		const { userVideo } = result;
 		const flashcards = userVideo.flashCard;
 
 		res.status(StatusCodes.SUCCESS.code).json(flashcards);
@@ -48,35 +34,22 @@ class FlashcardsController {
 
 	/**
 	 * Get flashcard of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	readOne(req: UserRequest, res: Response) {
+	readOne(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 		const flashcardId = req.params.id as string;
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "Video not found",
-			});
-			return;
-		}
+		const { userVideo } = result;
 
 		const flashcardIndex = userVideo.flashCard.findIndex(
 			(flashcard) => flashcard._id === flashcardId,
@@ -93,10 +66,10 @@ class FlashcardsController {
 
 	/**
 	 * Create flashcard of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	create(req: UserRequest, res: Response) {
+	create(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 		const { flashcard } = req.body;
 		const uuid = new Types.ObjectId();
@@ -111,31 +84,16 @@ class FlashcardsController {
 			return;
 		}
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "Video not found",
-			});
-			return;
-		}
-		if (!userVideo.flashCard) {
-			userVideo.flashCard = [];
-		}
+		const { userVideo, index: videoIndex } = result;
+
 		userVideo.flashCard.push(flashcard);
 
 		userModel
@@ -144,10 +102,8 @@ class FlashcardsController {
 				{ userVideos: req.user.userVideos },
 				{ new: true },
 			)
+			.orFail(new NotFoundError("User not found"))
 			.then((user) => {
-				if (!user) {
-					throw new NotFoundError("User not found");
-				}
 				res.status(StatusCodes.SUCCESS.code).json({
 					flashcard: user.userVideos[videoIndex].flashCard,
 				});
@@ -168,10 +124,10 @@ class FlashcardsController {
 
 	/**
 	 * Update flashcard of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	patch(req: UserRequest, res: Response) {
+	patch(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 		const flashcardId = req.params.id as string;
 		const { front, back } = req.body;
@@ -185,28 +141,15 @@ class FlashcardsController {
 			return;
 		}
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "Video not found",
-			});
-			return;
-		}
+		const { userVideo, index: videoIndex } = result;
 		const flashcardIndex = userVideo.flashCard.findIndex(
 			(flashcard) => flashcard._id === flashcardId,
 		);
@@ -232,10 +175,8 @@ class FlashcardsController {
 				{ userVideos: req.user.userVideos },
 				{ new: true },
 			)
+			.orFail(new NotFoundError("User not found"))
 			.then((user) => {
-				if (!user) {
-					throw new NotFoundError("User not found");
-				}
 				res.status(StatusCodes.SUCCESS.code).json({
 					flashcard: user.userVideos[videoIndex].flashCard[flashcardIndex],
 				});
@@ -256,10 +197,10 @@ class FlashcardsController {
 
 	/**
 	 * Update flashcard of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	update(req: UserRequest, res: Response) {
+	update(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 		const flashcardId = req.params.id as string;
 		const { front, back } = req.body;
@@ -277,28 +218,16 @@ class FlashcardsController {
 			return;
 		}
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "Video not found",
-			});
-			return;
-		}
+		const { userVideo, index: videoIndex } = result;
+
 		const flashcardIndex = userVideo.flashCard.findIndex(
 			(flashcard) => flashcard._id === flashcardId,
 		);
@@ -324,10 +253,8 @@ class FlashcardsController {
 				{ userVideos: req.user.userVideos },
 				{ new: true },
 			)
+			.orFail(new NotFoundError("User not found"))
 			.then((user) => {
-				if (!user) {
-					throw new NotFoundError("User not found");
-				}
 				res.status(StatusCodes.SUCCESS.code).json({
 					flashcard: user.userVideos[videoIndex].flashCard[flashcardIndex],
 				});
@@ -348,35 +275,23 @@ class FlashcardsController {
 
 	/**
 	 * Delete flashcard of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	delete(req: UserRequest, res: Response) {
+	delete(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 		const flashcardId = req.params.id as string;
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "Video not found",
-			});
-			return;
-		}
+		const { userVideo, index: videoIndex } = result;
+
 		const flashcardIndex = userVideo.flashCard.findIndex(
 			(flashcard) => flashcard._id === flashcardId,
 		);
@@ -396,10 +311,8 @@ class FlashcardsController {
 				{ userVideos: req.user.userVideos },
 				{ new: true },
 			)
+			.orFail(new NotFoundError("User not found"))
 			.then((user) => {
-				if (!user) {
-					throw new NotFoundError("User not found");
-				}
 				res.status(StatusCodes.SUCCESS.code).json({
 					flashcard: user.userVideos[videoIndex].flashCard,
 				});

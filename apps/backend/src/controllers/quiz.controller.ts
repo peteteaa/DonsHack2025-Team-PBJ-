@@ -1,4 +1,4 @@
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import {
 	answerValidationPrompt,
 	generationConfig,
@@ -8,14 +8,13 @@ import {
 } from "../config/gemini.config";
 import { createQuizSchema, validateAnswerSchema } from "../config/zod.config";
 import videoModel from "../models/video.model";
-import type { UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
 import { BadRequestError } from "../utils/errors";
 
 const MIN_SEGMENT_LENGTH = 60 * 5; // Minimum segment length in seconds
 
 class QuizController {
-	async create(req: UserRequest, res: Response) {
+	async create(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 
 		try {
@@ -92,7 +91,7 @@ Generate the quiz questions JSON based on this transcript segment.`;
 		}
 	}
 
-	async validateAnswer(req: UserRequest, res: Response) {
+	async validateAnswer(req: Request, res: Response) {
 		try {
 			const validation = validateAnswerSchema.safeParse({
 				question: req.body.question,

@@ -31,7 +31,7 @@ export interface UserNoteItem {
 	text: string;
 }
 
-interface UserVideosItem {
+export interface UserVideosItem {
 	flashCard: FlashCardItem[];
 	notes: UserNoteItem[];
 	videoId: string | Video;

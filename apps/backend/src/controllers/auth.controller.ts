@@ -1,8 +1,9 @@
 import type { CookieOptions, Request, Response } from "express";
 import type { JwtPayload } from "jsonwebtoken";
-import { z } from "zod";
+import { StytchError } from "stytch";
 import { EnvConfig } from "../config/env.config";
 import { stytchClient } from "../config/stytch.config";
+import { emailSchema } from "../config/zod.config";
 import User from "../models/user.model";
 import StatusCodes from "../types/response-codes";
 import {
@@ -16,10 +17,6 @@ const cookieOptions: CookieOptions = {
 	sameSite: "strict" as const,
 	maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days in milliseconds
 };
-
-const emailSchema = z.object({
-	email: z.string().email("Invalid email format"),
-});
 
 class AuthController {
 	login(req: Request, res: Response) {
@@ -63,42 +60,45 @@ class AuthController {
 			return;
 		}
 
+		let email: string;
+
 		stytchClient.magicLinks
 			.authenticate({
 				token: token,
 				session_duration_minutes: 60,
 			})
 			.then((response) => {
-				const email = response.user.emails[0].email;
-				User.findOne({ email })
-					.then((user) => {
-						if (!user) {
-							return User.create({
-								email: email,
-							});
-						}
-						return Promise.resolve(user);
-					})
-					.then((user) => {
-						res
-							.cookie("session_token", createToken({ email }), cookieOptions)
-							.json({
-								authenticated: true,
-								email: user.email,
-							});
-					})
-					.catch((err) => {
-						console.error(err);
-						res
-							.status(StatusCodes.INTERNAL_SERVER_ERROR.code)
-							.send(StatusCodes.INTERNAL_SERVER_ERROR.message);
+				email = response.user.emails[0].email;
+				return User.findOne({ email });
+			})
+			.then((user) => {
+				if (!user) {
+					return User.create({
+						email: email,
+					});
+				}
+				return Promise.resolve(user);
+			})
+			.then((user) => {
+				res
+					.cookie("session_token", createToken({ email }), cookieOptions)
+					.json({
+						authenticated: true,
+						email: user.email,
 					});
 			})
 			.catch((err) => {
+				if (err instanceof StytchError) {
+					console.error(err);
+					res
+						.status(StatusCodes.UNAUTHORIZED.code)
+						.send(StatusCodes.UNAUTHORIZED.message);
+					return;
+				}
 				console.error(err);
 				res
-					.status(StatusCodes.UNAUTHORIZED.code)
-					.send(StatusCodes.UNAUTHORIZED.message);
+					.status(StatusCodes.INTERNAL_SERVER_ERROR.code)
+					.send(StatusCodes.INTERNAL_SERVER_ERROR.message);
 			});
 	}
 

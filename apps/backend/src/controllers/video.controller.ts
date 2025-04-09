@@ -1,6 +1,6 @@
 import type { GenerateContentResult } from "@google/generative-ai";
 import type { ContentTableItem, VideoPage } from "@shared/types";
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import {
 	generationConfig,
 	model,
@@ -9,7 +9,7 @@ import {
 import { youtubeUrlSchema } from "../config/zod.config";
 import userModel from "../models/user.model";
 import videoModel from "../models/video.model";
-import type { GeminiResponse, UserRequest } from "../types";
+import type { GeminiResponse } from "../types";
 import StatusCodes from "../types/response-codes";
 import { BadRequestError, NotFoundError } from "../utils/errors";
 import { getVideoTitle } from "../utils/get_video_title";
@@ -17,7 +17,7 @@ import { fetchTranscript, formatTranscript } from "../utils/transcript";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
 
 class VideoController {
-	async processVideo(req: UserRequest, res: Response) {
+	async processVideo(req: Request, res: Response) {
 		const { videoUrl } = req.body;
 
 		try {
@@ -27,12 +27,11 @@ class VideoController {
 			}
 			const video = await videoModel.findOne({ url: validatedUrl });
 			if (video) {
-				const videoOnUser = req.user?.userVideos?.find(
-					(userVideo) => userVideo.videoId === video._id.toString(),
-				);
-				if (!videoOnUser) {
+				const result = validateUserAndVideo(req.user, video._id.toString());
+
+				if (!result) {
 					await userModel.findOneAndUpdate(
-						{ email: req.user?.email },
+						{ email: req.user.email },
 						{ $push: { userVideos: { videoId: video._id } } },
 					);
 				}
@@ -40,8 +39,6 @@ class VideoController {
 					videoId: video._id,
 					url: video.url,
 					title: video.title,
-					transcript: video.transcript,
-					contentTable: video.contentTable,
 				});
 				return;
 			}
@@ -103,7 +100,7 @@ Generate the ContentTable JSON based on this transcript.`;
 			});
 
 			await userModel.findOneAndUpdate(
-				{ email: req.user?.email },
+				{ email: req.user.email },
 				{ $push: { userVideos: { videoId: createdVideo._id } } },
 			);
 
@@ -127,7 +124,7 @@ Generate the ContentTable JSON based on this transcript.`;
 		}
 	}
 
-	getVideo(req: UserRequest, res: Response) {
+	getVideo(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 
 		if (!req.user) {
@@ -137,14 +134,14 @@ Generate the ContentTable JSON based on this transcript.`;
 			return;
 		}
 
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
-		const userVideo = req.user.userVideos?.[videoIndex];
+		const { userVideo } = result;
 
 		videoModel
 			.findOne({ _id: videoId })
@@ -179,14 +176,7 @@ Generate the ContentTable JSON based on this transcript.`;
 			});
 	}
 
-	getAllUserVideos(req: UserRequest, res: Response) {
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-
+	getAllUserVideos(req: Request, res: Response) {
 		if (!req.user.userVideos) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "No videos found",
@@ -194,7 +184,7 @@ Generate the ContentTable JSON based on this transcript.`;
 			return;
 		}
 
-		const VideoPromises = req.user?.userVideos?.map((video) =>
+		const VideoPromises = req.user.userVideos.map((video) =>
 			videoModel.findOne({ _id: video.videoId }),
 		);
 

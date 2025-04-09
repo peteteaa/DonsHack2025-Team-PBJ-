@@ -1,8 +1,7 @@
-import type { Response } from "express";
+import type { Request, Response } from "express";
 import { Types } from "mongoose";
 import { NoteSchema, notePatchSchema } from "../config/zod.config";
 import userModel from "../models/user.model";
-import type { UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
 import { NotFoundError } from "../utils/errors";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
@@ -13,32 +12,20 @@ import { validateUserAndVideo } from "../utils/validate_video_and_user";
 class NotesController {
 	/**
 	 * Get notes of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	readAll(req: UserRequest, res: Response) {
+	readAll(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "User video not found",
-			});
-			return;
-		}
+		const { userVideo } = result;
 		const notes = userVideo.notes;
 
 		res.status(StatusCodes.SUCCESS.code).json(notes);
@@ -46,35 +33,22 @@ class NotesController {
 
 	/**
 	 * Get note of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	readOne(req: UserRequest, res: Response) {
+	readOne(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 		const noteId = req.params.id as string;
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "User video not found",
-			});
-			return;
-		}
+		const { userVideo } = result;
 
 		const noteIndex = userVideo.notes.findIndex((note) => note._id === noteId);
 		if (noteIndex === -1) {
@@ -89,10 +63,10 @@ class NotesController {
 
 	/**
 	 * Create note of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	create(req: UserRequest, res: Response) {
+	create(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 		const { note } = req.body;
 
@@ -107,28 +81,15 @@ class NotesController {
 		const uuid = new Types.ObjectId();
 		note._id = uuid;
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "User video not found",
-			});
-			return;
-		}
+		const { userVideo, index: videoIndex } = result;
 		userVideo.notes.push(note);
 
 		userModel
@@ -161,10 +122,10 @@ class NotesController {
 
 	/**
 	 * Patch note of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	patch(req: UserRequest, res: Response) {
+	patch(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 		const noteId = req.params.id as string;
 		const { moment, text } = req.body;
@@ -178,28 +139,15 @@ class NotesController {
 			return;
 		}
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
-			});
-			return;
-		}
-
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "User video not found",
-			});
-			return;
-		}
+		const { userVideo, index: videoIndex } = result;
 		const noteIndex = userVideo.notes.findIndex((note) => note._id === noteId);
 
 		if (noteIndex === -1) {
@@ -245,20 +193,23 @@ class NotesController {
 
 	/**
 	 * Update note of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	update(req: UserRequest, res: Response) {
+	update(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 		const noteId = req.params.id as string;
 		const { moment, text } = req.body;
 
-		if (!req.user) {
-			res.status(StatusCodes.UNAUTHORIZED.code).json({
-				message: "User not found",
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
+			res.status(StatusCodes.NOT_FOUND.code).json({
+				message: "Video not found",
 			});
 			return;
 		}
+
+		const { userVideo, index: videoIndex } = result;
 
 		const validation = NoteSchema.safeParse({
 			moment,
@@ -273,22 +224,6 @@ class NotesController {
 			return;
 		}
 
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "Video not found",
-			});
-			return;
-		}
-
-		const userVideo = req.user.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "User video not found",
-			});
-			return;
-		}
-
 		const noteIndex = userVideo.notes.findIndex((note) => note._id === noteId);
 		if (noteIndex === -1) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
@@ -297,8 +232,9 @@ class NotesController {
 			return;
 		}
 
+		const note = userVideo.notes[noteIndex];
 		userVideo.notes[noteIndex] = {
-			...userVideo.notes[noteIndex],
+			...note,
 			moment,
 			text,
 		};
@@ -332,10 +268,10 @@ class NotesController {
 
 	/**
 	 * Delete note of a specific User and Video
-	 * @param {UserRequest} req
+	 * @param {Request} req
 	 * @param {Response} res
 	 */
-	delete(req: UserRequest, res: Response) {
+	delete(req: Request, res: Response) {
 		const videoId = req.params.videoID as string;
 		const noteId = req.params.id as string;
 
@@ -346,21 +282,15 @@ class NotesController {
 			return;
 		}
 
-		const videoIndex = validateUserAndVideo(req.user, videoId);
-		if (videoIndex === -1) {
+		const result = validateUserAndVideo(req.user, videoId);
+		if (!result) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "Video not found",
 			});
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
-		if (!userVideo) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "User video not found",
-			});
-			return;
-		}
+		const { userVideo, index: videoIndex } = result;
 
 		const noteIndex = userVideo.notes.findIndex((note) => note._id === noteId);
 		if (noteIndex === -1) {
