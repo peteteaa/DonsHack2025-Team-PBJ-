@@ -1,4 +1,4 @@
-export const ResponseCodes = {
+const ResponseCodes = {
 	SUCCESS: {
 		code: 200,
 		message: "Success",
