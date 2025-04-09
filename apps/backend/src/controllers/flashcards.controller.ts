@@ -1,5 +1,5 @@
-import { randomUUID } from "node:crypto";
 import type { Response } from "express";
+import { Types } from "mongoose";
 import { FlashcardSchema, flashcardPatchSchema } from "../config/zod.config";
 import userModel from "../models/user.model";
 import type { UserRequest } from "../types";
@@ -7,13 +7,16 @@ import StatusCodes from "../types/response-codes";
 import { NotFoundError } from "../utils/errors";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
 
+/**
+ * Controller for flashcards
+ */
 class FlashcardsController {
 	/**
 	 * Get flashcards of a specific User and Video
 	 * @param {UserRequest} req
 	 * @param {Response} res
 	 */
-	read(req: UserRequest, res: Response) {
+	readAll(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
 
 		if (!req.user) {
@@ -44,12 +47,59 @@ class FlashcardsController {
 	}
 
 	/**
-	 * Create flashcard
+	 * Get flashcard of a specific User and Video
+	 * @param {UserRequest} req
+	 * @param {Response} res
+	 */
+	readOne(req: UserRequest, res: Response) {
+		const videoId = req.params.videoID as string;
+		const flashcardId = req.params.id as string;
+
+		if (!req.user) {
+			res.status(StatusCodes.UNAUTHORIZED.code).json({
+				message: "User not found",
+			});
+			return;
+		}
+
+		const videoIndex = validateUserAndVideo(req.user, videoId);
+		if (videoIndex === -1) {
+			res.status(StatusCodes.NOT_FOUND.code).json({
+				message: "Video not found",
+			});
+			return;
+		}
+
+		const userVideo = req.user?.userVideos?.[videoIndex];
+		if (!userVideo) {
+			res.status(StatusCodes.NOT_FOUND.code).json({
+				message: "Video not found",
+			});
+			return;
+		}
+
+		const flashcardIndex = userVideo.flashCard.findIndex(
+			(flashcard) => flashcard._id === flashcardId,
+		);
+		if (flashcardIndex === -1) {
+			res.status(StatusCodes.NOT_FOUND.code).json({
+				message: "Flashcard not found",
+			});
+			return;
+		}
+		const flashcard = userVideo.flashCard[flashcardIndex];
+		res.status(StatusCodes.SUCCESS.code).json(flashcard);
+	}
+
+	/**
+	 * Create flashcard of a specific User and Video
+	 * @param {UserRequest} req
+	 * @param {Response} res
 	 */
 	create(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
 		const { flashcard } = req.body;
-		const uuid = randomUUID();
+		const uuid = new Types.ObjectId();
 		flashcard._id = uuid;
 
 		const validation = FlashcardSchema.safeParse(flashcard);
@@ -117,7 +167,9 @@ class FlashcardsController {
 	}
 
 	/**
-	 * Update flashcard
+	 * Update flashcard of a specific User and Video
+	 * @param {UserRequest} req
+	 * @param {Response} res
 	 */
 	patch(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
@@ -203,7 +255,9 @@ class FlashcardsController {
 	}
 
 	/**
-	 * Update flashcard
+	 * Update flashcard of a specific User and Video
+	 * @param {UserRequest} req
+	 * @param {Response} res
 	 */
 	update(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
@@ -293,7 +347,9 @@ class FlashcardsController {
 	}
 
 	/**
-	 * Delete flashcard
+	 * Delete flashcard of a specific User and Video
+	 * @param {UserRequest} req
+	 * @param {Response} res
 	 */
 	delete(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;

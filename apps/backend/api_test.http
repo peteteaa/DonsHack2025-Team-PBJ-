@@ -1,5 +1,5 @@
 @base_url = http://localhost:4000/api
-@token =
+@token = 
 @email = 
 @video_id =
 @note_id = 
@@ -9,6 +9,9 @@
 GET {{base_url}}
 
 
+
+
+### AUTH ###
 ### login ###
 POST {{base_url}}/auth/login
 Content-Type: application/json
@@ -27,6 +30,10 @@ GET {{base_url}}/auth/status
 ### logout ###
 POST {{base_url}}/auth/logout
 
+
+
+
+### VIDEO ###
 ### process video ###
 POST {{base_url}}/video/process
 Content-Type: application/json
@@ -42,8 +49,16 @@ Content-Type: application/json
 ### get video ###
 GET {{base_url}}/video/{{video_id}}
 
+
+
+
+### NOTES ###
 ### get notes for specific video of user ###
 GET {{base_url}}/video/{{video_id}}/notes
+Content-Type: application/json
+
+### get note of specific video of user ###
+GET {{base_url}}/video/{{video_id}}/notes/{{note_id}}
 Content-Type: application/json
 
 ### create note for specific video of user ###
@@ -62,12 +77,31 @@ PATCH {{base_url}}/video/{{video_id}}/notes/{{note_id}}
 Content-Type: application/json
 
 {
-  "moment": 100,
-  "text": "test"
+  "moment": 100
 }
 
+### update a note for specific video of user ###
+PUT {{base_url}}/video/{{video_id}}/notes/{{note_id}}
+Content-Type: application/json
+
+{
+  "moment": 0,
+  "text": "This is a note for the beginning of the video"
+}
+
+### delete a note for specific video of user ###
+DELETE {{base_url}}/video/{{video_id}}/notes/{{note_id}}
+
+
+
+
+### FLASHCARDS ###
 ### get user flashcards for specific video ###
 GET {{base_url}}/video/{{video_id}}/flashcards
+Content-Type: application/json
+
+### get flashcard of specific video of user ###
+GET {{base_url}}/video/{{video_id}}/flashcards/{{flashcard_id}}
 Content-Type: application/json
 
 ### create flashcard for specific video of user ###
@@ -89,6 +123,22 @@ Content-Type: application/json
   "back": "Paris"
 }
 
+### update a flashcard for specific video of user ###
+PUT {{base_url}}/video/{{video_id}}/flashcards/{{flashcard_id}}
+Content-Type: application/json
+
+{
+  "front": "What is the capital of France?",
+  "back": "Champs-Élysées"
+}
+
+### delete a flashcard for specific video of user ###
+DELETE {{base_url}}/video/{{video_id}}/flashcards/{{flashcard_id}}
+
+
+
+
+### QUIZ ###
 ### create quiz for specific video of user ###
 POST {{base_url}}/video/{{video_id}}/quiz
 Content-Type: application/json
