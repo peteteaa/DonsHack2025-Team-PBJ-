@@ -122,7 +122,7 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 
 		try {
 			const response = await fetch(
-				`/api/video/${videoPageData.videoId._id}/quiz`,
+				`/api/video/${videoPageData.video.id}/quiz`,
 				{
 					method: "POST",
 					headers: {
@@ -190,7 +190,7 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 
 		try {
 			const response = await fetch(
-				`/api/video/${videoPageData.videoId._id}/quiz/validate`,
+				`/api/video/${videoPageData.video.id}/quiz/validate`,
 				{
 					method: "POST",
 					headers: {
@@ -238,7 +238,7 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 
 		try {
 			const response = await fetch(
-				`/api/video/${videoPageData.videoId._id}/notes`,
+				`/api/video/${videoPageData.video.id}/notes`,
 				{
 					method: "POST",
 					headers: {
@@ -282,10 +282,10 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 
 		// Initialize player when API is ready
 		window.onYouTubeIframeAPIReady = () => {
-			if (!videoPageData?.videoId?.url) {
+			if (!videoPageData?.video?.url) {
 				return;
 			}
-			const videoId = videoPageData.videoId.url.split("v=")[1];
+			const videoId = videoPageData.video.url.split("v=")[1];
 
 			try {
 				const newPlayer = new window.YT.Player("youtube-player", {
@@ -344,9 +344,7 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 			{videoPageData && (
 				<>
 					<div className="flex justify-between items-center mb-8">
-						<h1 className="text-3xl font-bold">
-							{videoPageData.videoId.title}
-						</h1>
+						<h1 className="text-3xl font-bold">{videoPageData.video.title}</h1>
 						<div className="flex gap-4">
 							<ThemeToggle />
 							<Button
@@ -697,5 +695,5 @@ export default function Page() {
 		fetchVideoPage();
 	}, [id]);
 
-	return <VideoPage contentTable={videoPageData?.videoId.contentTable ?? []} />;
+	return <VideoPage contentTable={videoPageData?.video.contentTable ?? []} />;
 }

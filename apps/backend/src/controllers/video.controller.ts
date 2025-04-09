@@ -1,5 +1,5 @@
 import type { GenerateContentResult } from "@google/generative-ai";
-import type { ContentTable, VideoPage } from "@shared/types";
+import type { ContentTableItem, VideoPage } from "@shared/types";
 import type { Response } from "express";
 import {
 	generationConfig,
@@ -8,7 +8,6 @@ import {
 } from "../config/gemini.config";
 import { youtubeUrlSchema } from "../config/zod.config";
 import userModel from "../models/user.model";
-import UserModel from "../models/user.model";
 import videoModel from "../models/video.model";
 import type { GeminiResponse, UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
@@ -51,7 +50,7 @@ class VideoController {
 				new URL(validatedUrl).searchParams.get("v") as string,
 			);
 			console.log("Transcript fetched successfully");
-			const formattedTranscript = formatTranscript(transcript);
+			const formattedTranscript = formatTranscript(transcript as unknown[]);
 			console.log("Transcript formatted successfully");
 
 			const finalPrompt = `${transcriptPrompt}
@@ -83,7 +82,7 @@ Generate the ContentTable JSON based on this transcript.`;
 			const jsonStr = responseText.replace(/```json\n|\n```|```/g, "").trim();
 			const geminiContentTable: GeminiResponse[] = JSON.parse(jsonStr);
 
-			const contentTable: ContentTable = geminiContentTable.map(
+			const contentTable: ContentTableItem[] = geminiContentTable.map(
 				(geminiItem) => ({
 					chapter: geminiItem.chapter,
 					summary: geminiItem.summary,
@@ -154,8 +153,8 @@ Generate the ContentTable JSON based on this transcript.`;
 					throw new NotFoundError("Video not found");
 				}
 				const videoData: VideoPage = {
-					videoId: {
-						_id: video._id.toString(),
+					video: {
+						id: video._id.toString(),
 						contentTable: video.contentTable,
 						title: video.title,
 						transcript: video.transcript,
@@ -181,33 +180,44 @@ Generate the ContentTable JSON based on this transcript.`;
 	}
 
 	getAllUserVideos(req: UserRequest, res: Response) {
-		UserModel.findOne({ email: req.user?.email }).then((user) => {
-			if (!user) {
-				throw new NotFoundError("User not found");
-			}
+		if (!req.user) {
+			res.status(StatusCodes.UNAUTHORIZED.code).json({
+				message: "User not found",
+			});
+			return;
+		}
 
-			// populate the userVideos
-			user
-				.populate({
-					path: "userVideos.videoId",
-					model: "Video",
-				})
-				.then((populatedUser) => {
-					res.status(StatusCodes.SUCCESS.code).json(populatedUser.userVideos);
-				})
-				.catch((error) => {
-					if (error instanceof NotFoundError) {
-						res.status(StatusCodes.NOT_FOUND.code).json({
-							message: "User not found",
-						});
-						return;
-					}
-					console.error(error);
-					res.status(StatusCodes.INTERNAL_SERVER_ERROR.code).json({
-						message: "Internal server error",
-					});
+		if (!req.user.userVideos) {
+			res.status(StatusCodes.NOT_FOUND.code).json({
+				message: "No videos found",
+			});
+			return;
+		}
+
+		const VideoPromises = req.user?.userVideos?.map((video) =>
+			videoModel.findOne({ _id: video.videoId }),
+		);
+
+		Promise.all(VideoPromises)
+			.then((videos) => {
+				if (!videos?.length) {
+					throw new NotFoundError("No videos found");
+				}
+
+				const userVideos = videos
+					.filter((video) => video !== null)
+					.map((video) => ({
+						id: video._id.toString(),
+						title: video.title,
+					}));
+				res.status(StatusCodes.SUCCESS.code).json(userVideos);
+			})
+			.catch((error) => {
+				console.error(error);
+				res.status(StatusCodes.INTERNAL_SERVER_ERROR.code).json({
+					message: "Internal server error",
 				});
-		});
+			});
 	}
 }
 

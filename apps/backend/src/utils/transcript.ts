@@ -1,6 +1,5 @@
 import type { TranscriptItem } from "@shared/types";
 import { Innertube } from "youtubei.js";
-import type TranscriptSegment from "youtubei.js/dist/src/parser/classes/TranscriptSegment";
 
 export const fetchTranscript = async (youTubeId: string) => {
 	const youtube = await Innertube.create({
@@ -19,8 +18,7 @@ export const fetchTranscript = async (youTubeId: string) => {
 	}
 };
 
-// biome-ignore lint/suspicious/noExplicitAny: <explanation>
-export function formatTranscript(segments: any): TranscriptItem[] {
+export function formatTranscript(segments: unknown[]): TranscriptItem[] {
 	/**
 	 * Example Segment
 	 * TranscriptSegment {
@@ -37,11 +35,15 @@ export function formatTranscript(segments: any): TranscriptItem[] {
 	 */
 
 	return segments.map(
-		(item: TranscriptSegment, index: number): TranscriptItem => ({
+		(item: unknown, index: number): TranscriptItem => ({
 			id: index,
-			start: Math.floor(Number.parseInt(item.start_ms) / 1000),
-			end: Math.floor(Number.parseInt(item.end_ms) / 1000),
-			text: item.snippet.text || "",
+			start: Math.floor(
+				Number.parseInt((item as { start_ms: string }).start_ms) / 1000,
+			),
+			end: Math.floor(
+				Number.parseInt((item as { end_ms: string }).end_ms) / 1000,
+			),
+			text: (item as { snippet: { text: string } }).snippet.text || "",
 		}),
 	);
 }

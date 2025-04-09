@@ -1,37 +1,9 @@
 export interface User {
 	id: string;
 	email: string;
-	userVideos?: UserVideos;
+	userVideos?: UserVideosItem[];
 }
 
-export interface Video {
-	id: string;
-	url: string;
-	title: string;
-	transcript: TranscriptItem[];
-	contentTable: ContentTable;
-}
-
-type UserNotes = UserNoteItem[];
-export interface UserNoteItem {
-	_id: string;
-	moment: number;
-	text: string;
-}
-
-export type UserVideos = UserVideosItem[];
-interface UserVideosItem {
-	flashCard: FlashCardItem[];
-	notes?: UserNotes;
-	videoId: string | Video;
-}
-interface FlashCardItem {
-	_id: string;
-	back: string;
-	front: string;
-}
-
-export type ContentTable = ContentTableItem[];
 interface ContentTableItem {
 	chapter: string;
 	summary: string;
@@ -45,27 +17,36 @@ export interface TranscriptItem {
 	text: string;
 }
 
+export interface Video {
+	id: string;
+	url: string;
+	title: string;
+	transcript: TranscriptItem[];
+	contentTable: ContentTableItem[];
+}
+
+export interface UserNoteItem {
+	_id: string;
+	moment: number;
+	text: string;
+}
+
+interface UserVideosItem {
+	flashCard: FlashCardItem[];
+	notes: UserNoteItem[];
+	videoId: string | Video;
+}
+
+interface FlashCardItem {
+	_id: string;
+	back: string;
+	front: string;
+}
+
 export interface VideoPage {
 	flashCard: FlashCardItem[];
 	notes: UserNoteItem[];
-	videoId: VideoId;
-}
-interface VideoId {
-	_id: string;
-	contentTable: ContentTableItem[];
-	title: string;
-	transcript: TranscriptItem[];
-	url: string;
-}
-interface ContentTableItem {
-	chapter: string;
-	summary: string;
-	transcript: TranscriptItem[];
-}
-interface TranscriptItem {
-	end: number;
-	start: number;
-	text: string;
+	video: Video;
 }
 
 export interface QuizData {

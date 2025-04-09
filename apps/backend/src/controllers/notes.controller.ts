@@ -81,9 +81,6 @@ class NotesController {
 			});
 			return;
 		}
-		if (!userVideo.notes) {
-			userVideo.notes = [];
-		}
 		userVideo.notes.push(note);
 
 		userModel
@@ -153,12 +150,6 @@ class NotesController {
 			});
 			return;
 		}
-		if (!userVideo.notes) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "Notes not found",
-			});
-			return;
-		}
 		const noteIndex = userVideo.notes.findIndex((note) => note._id === noteId);
 
 		if (noteIndex === -1) {
@@ -169,12 +160,6 @@ class NotesController {
 		}
 		const note = userVideo.notes[noteIndex];
 
-		if (!note) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "Note not found",
-			});
-			return;
-		}
 		userVideo.notes[noteIndex] = {
 			...note,
 			moment: moment ?? note.moment,
@@ -244,16 +229,10 @@ class NotesController {
 			return;
 		}
 
-		const userVideo = req.user?.userVideos?.[videoIndex];
+		const userVideo = req.user.userVideos?.[videoIndex];
 		if (!userVideo) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "User video not found",
-			});
-			return;
-		}
-		if (!userVideo.notes) {
-			res.status(StatusCodes.NOT_FOUND.code).json({
-				message: "Notes not found",
 			});
 			return;
 		}
@@ -325,12 +304,6 @@ class NotesController {
 		if (!userVideo) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "User video not found",
-			});
-			return;
-		}
-		if (!userVideo.notes) {
-			res.status(StatusCodes.SUCCESS.code).json({
-				notes: [],
 			});
 			return;
 		}
