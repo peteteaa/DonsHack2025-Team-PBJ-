@@ -20,7 +20,7 @@ export default function YouTubePage() {
 	const [url, setUrl] = useState("");
 	const [error, setError] = useState("");
 	const [isDarkMode, setIsDarkMode] = useState(false);
-	const [videos, setVideos] = useState([]);
+	const [videos, setVideos] = useState<{ id: string; title: string }[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -45,13 +45,10 @@ export default function YouTubePage() {
 
 	// Fetch previously watched videos
 	useEffect(() => {
-		fetch("api/video")
+		fetch("/api/video")
 			.then((response) => response.json())
 			.then((data) => {
-				const mappedVideos = data.map(
-					(entry: { videoId: { _id: string; title: string } }) => entry.videoId,
-				);
-				setVideos(mappedVideos);
+				setVideos(data);
 				setLoading(false);
 			})
 			.catch((error) => {
@@ -65,7 +62,7 @@ export default function YouTubePage() {
 		setIsSubmitting(true);
 
 		// call the process api
-		await fetch("/api/video/process", {
+		await fetch("/api/video", {
 			method: "POST",
 			headers: {
 				"Content-Type": "application/json",
@@ -146,11 +143,11 @@ export default function YouTubePage() {
 						<p>Loading...</p>
 					) : videos.length > 0 ? (
 						<ul>
-							{videos.map((video: { title: string; _id: string }) => (
-								<li className="mb-4" key={video._id}>
+							{videos.map((video: { title: string; id: string }) => (
+								<li className="mb-4" key={video.id}>
 									<a
 										className="text-blue-500 hover:underline"
-										href={`/video/${video._id}`}
+										href={`/video/${video.id}`}
 									>
 										{video.title}
 									</a>
