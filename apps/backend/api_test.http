@@ -26,7 +26,6 @@ GET {{base_url}}/auth/authenticate?stytch_token_type=magic_links&token={{token}}
 ### status ###
 GET {{base_url}}/auth/status
 
-
 ### logout ###
 POST {{base_url}}/auth/logout
 
@@ -35,7 +34,7 @@ POST {{base_url}}/auth/logout
 
 ### VIDEO ###
 ### process video ###
-POST {{base_url}}/video/process
+POST {{base_url}}/video
 Content-Type: application/json
 
 {

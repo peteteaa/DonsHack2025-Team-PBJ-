@@ -40,11 +40,15 @@ class VideoController {
 						{ email: req.user.email },
 						{ $push: { userVideos: { videoId: video._id } } },
 					);
+					res.status(StatusCodes.SUCCESS.code).json({
+						videoId: video._id,
+						url: video.url,
+						title: video.title,
+					});
+					return;
 				}
-				res.status(StatusCodes.SUCCESS.code).json({
-					videoId: video._id,
-					url: video.url,
-					title: video.title,
+				res.status(StatusCodes.BAD_REQUEST.code).json({
+					message: "Video already exists",
 				});
 				return;
 			}
@@ -112,6 +116,8 @@ Generate the ContentTable JSON based on this transcript.`;
 
 			res.status(StatusCodes.SUCCESS.code).json({
 				videoId: createdVideo._id,
+				url: createdVideo.url,
+				title: createdVideo.title,
 			});
 		} catch (error) {
 			console.error("Error in video processing:", error);

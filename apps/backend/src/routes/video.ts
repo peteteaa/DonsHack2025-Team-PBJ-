@@ -7,7 +7,7 @@ const router = Router();
 
 // Routes for the notes of a specific video
 
-router.post("/process", VideoController.processVideo);
+router.post("/", VideoController.processVideo);
 router.use("/:videoID/notes/", noteRoutes);
 router.use("/:videoID/flashcards/", flashcardRoutes);
 router.use("/:videoID/quiz/", quizRoutes);
