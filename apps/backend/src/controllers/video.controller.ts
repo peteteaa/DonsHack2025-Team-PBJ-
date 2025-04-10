@@ -1,6 +1,6 @@
 import type { GenerateContentResult } from "@google/generative-ai";
 import type { ContentTableItem, VideoPage } from "@shared/types";
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import {
 	generationConfig,
 	model,
@@ -9,7 +9,7 @@ import {
 import { youtubeUrlSchema } from "../config/zod.config";
 import userModel from "../models/user.model";
 import videoModel from "../models/video.model";
-import type { GeminiResponse } from "../types";
+import type { GeminiResponse, UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
 import { BadRequestError, NotFoundError } from "../utils/errors";
 import { getVideoTitle } from "../utils/get_video_title";
@@ -17,13 +17,19 @@ import { fetchTranscript, formatTranscript } from "../utils/transcript";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
 
 class VideoController {
-	async processVideo(req: Request, res: Response) {
+	async processVideo(req: UserRequest, res: Response) {
 		const { videoUrl } = req.body;
 
 		try {
 			const validatedUrl = youtubeUrlSchema.parse(videoUrl);
 			if (!validatedUrl) {
 				throw new BadRequestError("Invalid YouTube video URL");
+			}
+			if (!req.user) {
+				res.status(StatusCodes.UNAUTHORIZED.code).json({
+					message: "Unauthorized",
+				});
+				return;
 			}
 			const video = await videoModel.findOne({ url: validatedUrl });
 			if (video) {
@@ -124,7 +130,7 @@ Generate the ContentTable JSON based on this transcript.`;
 		}
 	}
 
-	getVideo(req: Request, res: Response) {
+	getVideo(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
 
 		if (!req.user) {
@@ -176,8 +182,8 @@ Generate the ContentTable JSON based on this transcript.`;
 			});
 	}
 
-	getAllUserVideos(req: Request, res: Response) {
-		if (!req.user.userVideos) {
+	getAllUserVideos(req: UserRequest, res: Response) {
+		if (!req.user?.userVideos) {
 			res.status(StatusCodes.NOT_FOUND.code).json({
 				message: "No videos found",
 			});

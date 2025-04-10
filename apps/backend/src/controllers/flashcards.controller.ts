@@ -1,7 +1,8 @@
-import type { Request, Response } from "express";
+import type { Response } from "express";
 import { Types } from "mongoose";
 import { FlashcardSchema, flashcardPatchSchema } from "../config/zod.config";
 import userModel from "../models/user.model";
+import type { UserRequest } from "../types";
 import StatusCodes from "../types/response-codes";
 import { NotFoundError } from "../utils/errors";
 import { validateUserAndVideo } from "../utils/validate_video_and_user";
@@ -12,11 +13,17 @@ import { validateUserAndVideo } from "../utils/validate_video_and_user";
 class FlashcardsController {
 	/**
 	 * Get flashcards of a specific User and Video
-	 * @param {Request} req
+	 * @param {UserRequest} req
 	 * @param {Response} res
 	 */
-	readAll(req: Request, res: Response) {
+	readAll(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
+		if (!req.user) {
+			res.status(StatusCodes.UNAUTHORIZED.code).json({
+				message: "Unauthorized",
+			});
+			return;
+		}
 
 		const result = validateUserAndVideo(req.user, videoId);
 		if (!result) {
@@ -34,12 +41,19 @@ class FlashcardsController {
 
 	/**
 	 * Get flashcard of a specific User and Video
-	 * @param {Request} req
+	 * @param {UserRequest} req
 	 * @param {Response} res
 	 */
-	readOne(req: Request, res: Response) {
+	readOne(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
 		const flashcardId = req.params.id as string;
+
+		if (!req.user) {
+			res.status(StatusCodes.UNAUTHORIZED.code).json({
+				message: "Unauthorized",
+			});
+			return;
+		}
 
 		const result = validateUserAndVideo(req.user, videoId);
 		if (!result) {
@@ -66,10 +80,10 @@ class FlashcardsController {
 
 	/**
 	 * Create flashcard of a specific User and Video
-	 * @param {Request} req
+	 * @param {UserRequest} req
 	 * @param {Response} res
 	 */
-	create(req: Request, res: Response) {
+	create(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
 		const { flashcard } = req.body;
 		const uuid = new Types.ObjectId();
@@ -80,6 +94,13 @@ class FlashcardsController {
 			res.status(StatusCodes.BAD_REQUEST.code).json({
 				message: "Invalid flashcard data",
 				errors: validation.error.errors,
+			});
+			return;
+		}
+
+		if (!req.user) {
+			res.status(StatusCodes.UNAUTHORIZED.code).json({
+				message: "Unauthorized",
 			});
 			return;
 		}
@@ -124,10 +145,10 @@ class FlashcardsController {
 
 	/**
 	 * Update flashcard of a specific User and Video
-	 * @param {Request} req
+	 * @param {UserRequest} req
 	 * @param {Response} res
 	 */
-	patch(req: Request, res: Response) {
+	patch(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
 		const flashcardId = req.params.id as string;
 		const { front, back } = req.body;
@@ -137,6 +158,13 @@ class FlashcardsController {
 			res.status(StatusCodes.BAD_REQUEST.code).json({
 				message: "Invalid flashcard data",
 				errors: validation.error.errors,
+			});
+			return;
+		}
+
+		if (!req.user) {
+			res.status(StatusCodes.UNAUTHORIZED.code).json({
+				message: "Unauthorized",
 			});
 			return;
 		}
@@ -197,13 +225,19 @@ class FlashcardsController {
 
 	/**
 	 * Update flashcard of a specific User and Video
-	 * @param {Request} req
+	 * @param {UserRequest} req
 	 * @param {Response} res
 	 */
-	update(req: Request, res: Response) {
+	update(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
 		const flashcardId = req.params.id as string;
 		const { front, back } = req.body;
+		if (!req.user) {
+			res.status(StatusCodes.UNAUTHORIZED.code).json({
+				message: "Unauthorized",
+			});
+			return;
+		}
 
 		const validation = FlashcardSchema.safeParse({
 			front,
@@ -275,12 +309,19 @@ class FlashcardsController {
 
 	/**
 	 * Delete flashcard of a specific User and Video
-	 * @param {Request} req
+	 * @param {UserRequest} req
 	 * @param {Response} res
 	 */
-	delete(req: Request, res: Response) {
+	delete(req: UserRequest, res: Response) {
 		const videoId = req.params.videoID as string;
 		const flashcardId = req.params.id as string;
+
+		if (!req.user) {
+			res.status(StatusCodes.UNAUTHORIZED.code).json({
+				message: "Unauthorized",
+			});
+			return;
+		}
 
 		const result = validateUserAndVideo(req.user, videoId);
 		if (!result) {
