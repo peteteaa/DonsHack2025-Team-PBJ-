@@ -358,16 +358,7 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 					</div>
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 						<div className="lg:col-span-2">
-							<Card className="transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 group">
-								<CardHeader className="pb-2">
-									<CardTitle className="group-hover:text-primary group-hover:brightness-125">
-										{currentTimestamp !== null && (
-											<span className="text-sm font-normal text-muted-foreground">
-												Current Time: {formatTimestamp(currentTimestamp)}
-											</span>
-										)}
-									</CardTitle>
-								</CardHeader>
+							<Card className="transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 group max-h-[80vh] overflow-y-auto">
 								<CardContent className="p-0">
 									<div className="relative pt-[56.25%]">
 										<div
@@ -499,13 +490,13 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 
 																		return (
 																			<Button
-																				className={`w-full justify-start ${
+																				className={
 																					selectedAnswer === option
 																						? isCorrect
 																							? "bg-green-500 hover:bg-green-600"
 																							: "bg-red-500 hover:bg-red-600"
 																						: ""
-																				}`}
+																				}
 																				disabled={false}
 																				key={option}
 																				onClick={() =>
