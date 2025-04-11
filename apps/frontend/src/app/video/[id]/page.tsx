@@ -90,8 +90,6 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 
 	const [player, setPlayer] = useState<YouTubePlayer | null>(null);
 
-	const [currentTimestamp, setCurrentTimestamp] = useState<number | null>(null);
-
 	const [isGeneratingQuiz, setIsGeneratingQuiz] = useState(false);
 
 	const [notes, setNotes] = useState<Array<UserNoteItem & { _id: string }>>([]);
@@ -112,7 +110,6 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 	const handleGenerateQuestions = async () => {
 		if (!(player && videoPageData)) return;
 		const currentTime = Math.floor(player.getCurrentTime());
-		setCurrentTimestamp(currentTime);
 
 		setShowQuiz(true);
 		setCurrentQuestionIndex(0);
@@ -647,7 +644,6 @@ const VideoPage = ({ contentTable }: { contentTable: ChapterContent[] }) => {
 							<div className={`w-full ${isFullscreen ? "hidden" : ""}`}>
 								<ContentCard
 									contentTable={contentTable}
-									currentTimestamp={currentTimestamp}
 									savedNotes={notes}
 									note={note}
 									onSetNote={setNote}

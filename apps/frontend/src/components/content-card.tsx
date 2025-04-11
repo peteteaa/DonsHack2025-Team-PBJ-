@@ -17,7 +17,6 @@ interface Chapter {
 
 interface ContentCardProps {
 	contentTable: Chapter[];
-	currentTimestamp: number | null;
 	savedNotes: Array<UserNoteItem & { _id: string }>;
 	note: string;
 	onSetNote: (note: string) => void;
