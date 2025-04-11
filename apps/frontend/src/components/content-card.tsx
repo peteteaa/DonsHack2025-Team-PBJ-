@@ -3,21 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
-import type { UserNoteItem } from "@shared/types";
-
-interface Chapter {
-	chapter: string;
-	summary: string;
-	transcript: Array<{
-		start: number;
-		end: number;
-		text: string;
-	}>;
-}
+import type { UserNoteItem, ContentTableItem } from "@shared/types";
 
 interface ContentCardProps {
-	contentTable: Chapter[];
-	savedNotes: Array<UserNoteItem & { _id: string }>;
+	contentTable: ContentTableItem[];
+	savedNotes: UserNoteItem[];
 	note: string;
 	onSetNote: (note: string) => void;
 	onSaveNotes: (notes: string) => void;

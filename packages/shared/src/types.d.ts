@@ -4,7 +4,7 @@ export interface User {
 	userVideos?: UserVideosItem[];
 }
 
-interface ContentTableItem {
+export interface ContentTableItem {
 	chapter: string;
 	summary: string;
 	transcript: TranscriptItem[];
