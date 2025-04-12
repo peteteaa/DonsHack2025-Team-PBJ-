@@ -88,7 +88,7 @@ export default function YouTubePage() {
 
 	return (
 		<div className="container mx-auto py-8 px-4 dark:bg-gray-900">
-			<Card className="max-w-3xl mx-auto dark:bg-gray-800 dark:text-white">
+			<Card className="max-w-3xl mx-auto dark:bg-gray-800 dark:text-white py-4">
 				<CardHeader className="flex justify-between items-center">
 					<div>
 						<CardTitle>YouTube Video Player</CardTitle>
@@ -134,7 +134,7 @@ export default function YouTubePage() {
 				</CardContent>
 			</Card>
 
-			<Card className="max-w-3xl mx-auto mt-6 dark:bg-gray-800 dark:text-white">
+			<Card className="max-w-3xl mx-auto mt-6 py-4 dark:bg-gray-800 dark:text-white">
 				<CardHeader>
 					<CardTitle>Previously Visited Videos</CardTitle>
 				</CardHeader>
