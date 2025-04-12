@@ -6,17 +6,12 @@ import {
 	AccordionItem,
 	AccordionTrigger,
 } from "@/components/ui/accordion";
+import { formatTimestamp } from "@/lib/utils";
 import type { ContentTableItem } from "@shared/types";
 
 interface TranscriptSectionProps {
 	contentTable: ContentTableItem[];
 }
-
-const formatTimestamp = (seconds: number) => {
-	const minutes = Math.floor(seconds / 60);
-	const remainingSeconds = seconds % 60;
-	return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-};
 
 const TranscriptSection: React.FC<TranscriptSectionProps> = ({
 	contentTable,
@@ -24,7 +19,7 @@ const TranscriptSection: React.FC<TranscriptSectionProps> = ({
 	return (
 		<Accordion className="w-full" collapsible type="single">
 			{contentTable.map((chapter) => (
-				<AccordionItem key={chapter.chapter} value={chapter.chapter}>
+				<AccordionItem key={chapter.id} value={chapter.chapter}>
 					<AccordionTrigger>
 						<div className="flex flex-col items-start text-left">
 							<div className="font-semibold">{chapter.chapter}</div>

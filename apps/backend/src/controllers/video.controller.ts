@@ -1,6 +1,7 @@
 import type { GenerateContentResult } from "@google/generative-ai";
 import type { ContentTableItem, VideoPage } from "@shared/types";
 import type { Response } from "express";
+import { Types } from "mongoose";
 import {
 	generationConfig,
 	model,
@@ -91,6 +92,9 @@ Generate the ContentTable JSON based on this transcript.`;
 
 			const contentTable: ContentTableItem[] = geminiContentTable.map(
 				(geminiItem) => ({
+					id: new Types.ObjectId().toString(),
+					start: formattedTranscript[geminiItem.transcript_start_id].start,
+					end: formattedTranscript[geminiItem.transcript_end_id].end,
 					chapter: geminiItem.chapter,
 					summary: geminiItem.summary,
 					transcript: formattedTranscript.slice(

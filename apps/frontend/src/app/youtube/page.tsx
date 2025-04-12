@@ -1,5 +1,6 @@
 "use client";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +11,6 @@ import {
 	CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Moon, Sun } from "lucide-react"; // Import the Sun and Moon icons
 import { useRouter } from "next/navigation";
 import type React from "react";
 import { useEffect, useState } from "react";
@@ -96,20 +96,7 @@ export default function YouTubePage() {
 							Enter a YouTube URL to watch and analyze the video
 						</CardDescription>
 					</div>
-					<Button
-						aria-label={
-							isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"
-						}
-						className="p-2"
-						onClick={() => setIsDarkMode(!isDarkMode)}
-						variant="ghost"
-					>
-						{isDarkMode ? (
-							<Sun className="h-5 w-5" />
-						) : (
-							<Moon className="h-5 w-5" />
-						)}
-					</Button>
+					<ThemeToggle />
 				</CardHeader>
 				<CardContent>
 					<form className="space-y-4" onSubmit={handleSubmit}>

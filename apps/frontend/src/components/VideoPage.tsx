@@ -45,12 +45,12 @@ const VideoPage = () => {
 	if (!videoPageData) return null;
 
 	return (
-		<div className="container mx-auto py-4 px-4 h-[100vh]">
-			<div className="grid grid-cols-[2fr_1fr] grid-rows-[3rem_1fr_1fr] gap-6 h-[100%] mx-auto">
+		<div className="container mx-auto py-4 px-4 h-[100vh] overflow-auto box-border">
+			<div className="grid grid-cols-[2fr_1fr] grid-rows-[3rem_1fr_2fr] gap-6 h-[100%] mx-auto">
 				<div className="col-span-2">
 					<VideoHeader title={videoPageData.video.title} />
 				</div>
-				<div>
+				<div className="h-full w-full">
 					<VideoPlayer />
 				</div>
 				<div className="row-span-2">

@@ -5,6 +5,9 @@ export interface User {
 }
 
 export interface ContentTableItem {
+	id: string;
+	start: number;
+	end: number;
 	chapter: string;
 	summary: string;
 	transcript: TranscriptItem[];

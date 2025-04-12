@@ -27,7 +27,7 @@ const TranscriptQuizContainer: React.FC<TranscriptQuizContainerProps> = ({
 
 	return (
 		<Card
-			className={`transition-all duration-200 ${
+			className={`transition-all duration-200 h-full w-full ${
 				isFullscreen
 					? "fixed inset-0 z-50 m-0 max-h-none rounded-none "
 					: "max-h-[400px] overflow-auto hover:-translate-y-1 hover:bg-background/40"

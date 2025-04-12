@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
 import type { UserNoteItem, ContentTableItem } from "@shared/types";
+import { formatTimestamp } from "@/lib/utils";
 
 interface ContentCardProps {
 	contentTable: ContentTableItem[];
@@ -21,12 +22,6 @@ const ContentCard = ({
 	note,
 }: ContentCardProps) => {
 	const [isNotesView, setIsNotesView] = useState(false);
-
-	const formatVideoTime = (seconds: number): string => {
-		const minutes = Math.floor(seconds / 60);
-		const remainingSeconds = Math.floor(seconds % 60);
-		return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
-	};
 
 	const toggleView = () => {
 		setIsNotesView(!isNotesView);
@@ -48,15 +43,20 @@ const ContentCard = ({
 			</CardHeader>
 			<CardContent>
 				<div className="flex gap-6">
-					<div className={`${isNotesView ? "hidden" : "w-2/3"} space-y-4`}>
+					<div
+						className={`${
+							isNotesView ? "hidden" : "w-2/3"
+						} h-full overflow-auto`}
+					>
 						{contentTable.map((chapter) => (
-							<div
-								className="border-b pb-4 last:border-0"
-								key={chapter.chapter}
-							>
+							<div className="border-b pb-4 last:border-0" key={chapter.id}>
 								<h3 className="text-base font-semibold mb-1">
 									{chapter.chapter}
 								</h3>
+								<h6 className="text-sm font-semibold mb-1">
+									{formatTimestamp(chapter.start)} -{" "}
+									{formatTimestamp(chapter.end)}
+								</h6>
 								<p className="text-sm text-muted-foreground">
 									{chapter.summary}
 								</p>
@@ -89,7 +89,7 @@ const ContentCard = ({
 									<p className="text-sm">{note.text}</p>
 									{note.moment !== null && (
 										<p className="text-xs text-muted-foreground mt-1">
-											{formatVideoTime(note.moment)}
+											{formatTimestamp(note.moment)}
 										</p>
 									)}
 								</div>
