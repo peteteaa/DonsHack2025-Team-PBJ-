@@ -11,7 +11,7 @@ interface VideoHeaderProps {
 const VideoHeader: React.FC<VideoHeaderProps> = ({ title }) => {
 	const router = useRouter();
 	return (
-		<div className="flex justify-between items-center mb-8">
+		<div className="flex justify-between items-center h-full w-full">
 			<h1 className="text-3xl font-bold">{title}</h1>
 			<div className="flex gap-4">
 				<ThemeToggle />

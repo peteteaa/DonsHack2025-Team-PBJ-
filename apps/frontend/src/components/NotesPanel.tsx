@@ -33,7 +33,7 @@ const NotesPanel = () => {
 	};
 
 	return (
-		<div className="w-full">
+		<div className="w-full h-full overflow-auto">
 			<ContentCard
 				contentTable={videoPageData?.video.contentTable || []}
 				savedNotes={notes}

@@ -39,10 +39,13 @@ const VideoPlayer = () => {
 	}, [videoPageData, setPlayer]);
 
 	return (
-		<div className="card transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 group max-h-[80vh] overflow-y-auto">
+		<div className="card transition-all duration-200 hover:-translate-y-1 hover:bg-background/40 rounded-xl overflow-hidden h-full w-full">
 			<div className="card-content p-0">
 				<div className="relative pt-[56.25%]">
-					<div className="absolute inset-0 w-full h-full" id="youtube-player" />
+					<div
+						className="absolute inset-0 w-full h-full rounded-xl overflow-hidden"
+						id="youtube-player"
+					/>
 				</div>
 			</div>
 		</div>
