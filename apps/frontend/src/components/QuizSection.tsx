@@ -5,6 +5,7 @@ import { useVideoContext } from "@/context/VideoContext";
 import MultipleChoiceQuiz from "./MultipleChoiceQuiz";
 import ShortAnswerQuiz from "./ShortAnswerQuiz";
 import type { QuizMultipleItem, QuizOpenItem } from "@shared/types";
+import { useState } from "react";
 
 interface QuizSectionProps {
 	setErrorMessage: (msg: string | null) => void;
@@ -27,6 +28,8 @@ const QuizSection: React.FC<QuizSectionProps> = ({ setErrorMessage }) => {
 		isGeneratingQuiz,
 		setIsGeneratingQuiz,
 	} = useVideoContext();
+
+	const [isAnswer, setIsAnswer] = useState(false);
 
 	// Handler to generate quiz questions
 	const handleGenerateQuestions = async () => {
@@ -90,13 +93,8 @@ const QuizSection: React.FC<QuizSectionProps> = ({ setErrorMessage }) => {
 			"options" in currentQuestion &&
 			currentQuestion.answer.includes(answer)
 		) {
-			setTimeout(() => {
-				if (currentQuestionIndex < quizData.quiz.length - 1) {
-					setCurrentQuestionIndex(currentQuestionIndex + 1);
-					setSelectedAnswer(null);
-					setShowAnswer(false);
-				}
-			}, 1500);
+			setShowAnswer(true);
+			setIsAnswer(true);
 		}
 	};
 
@@ -127,6 +125,7 @@ const QuizSection: React.FC<QuizSectionProps> = ({ setErrorMessage }) => {
 				};
 				setQuizData({ ...quizData, quiz: updatedQuiz });
 			}
+			setIsAnswer(true);
 		} catch (error) {
 			setErrorMessage(
 				error instanceof Error ? error.message : "Unknown error occurred"
@@ -140,6 +139,7 @@ const QuizSection: React.FC<QuizSectionProps> = ({ setErrorMessage }) => {
 			setCurrentQuestionIndex(currentQuestionIndex + 1);
 			setSelectedAnswer(null);
 			setShowAnswer(false);
+			setIsAnswer(false);
 		}
 	};
 
@@ -192,6 +192,7 @@ const QuizSection: React.FC<QuizSectionProps> = ({ setErrorMessage }) => {
 								setCurrentQuestionIndex(0);
 								setSelectedAnswer(null);
 								setShowAnswer(false);
+								setIsAnswer(false);
 							}}
 							variant="default"
 						>
@@ -222,7 +223,7 @@ const QuizSection: React.FC<QuizSectionProps> = ({ setErrorMessage }) => {
 			</>
 		);
 	};
-
+	console.log(isAnswer);
 	return (
 		<div className="space-y-4">
 			{quizData.quiz.length === 0 ? renderQuizControls() : renderQuizContent()}
@@ -232,7 +233,9 @@ const QuizSection: React.FC<QuizSectionProps> = ({ setErrorMessage }) => {
 						className="text-sm"
 						onClick={handleNextQuestion}
 						variant="default"
-						disabled={currentQuestionIndex >= quizData.quiz.length - 1}
+						disabled={
+							!isAnswer || currentQuestionIndex >= quizData.quiz.length - 1
+						}
 					>
 						Next Question
 					</Button>

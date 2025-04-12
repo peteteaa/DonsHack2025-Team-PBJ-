@@ -32,7 +32,7 @@ const ShortAnswerQuiz: React.FC<ShortAnswerQuizProps> = ({
 			<div className="flex gap-2">
 				{!showAnswer ? (
 					<Button
-						className="w-full"
+						className="w-full bg-gray-500 text-white hover:bg-gray-600 hover:text-white"
 						disabled={!selectedAnswer}
 						onClick={onSubmitAnswer}
 						variant="outline"

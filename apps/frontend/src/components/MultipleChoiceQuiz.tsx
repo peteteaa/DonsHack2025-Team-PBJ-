@@ -21,7 +21,7 @@ const MultipleChoiceQuiz: React.FC<MultipleChoiceQuizProps> = ({
 	onSelectAnswer,
 }) => {
 	return (
-		<div className="space-y-2">
+		<div className="space-y-2 flex flex-col">
 			{currentQuestion.options.map((option: string) => {
 				// Determine if the option is correct
 				const isCorrect =
@@ -34,9 +34,9 @@ const MultipleChoiceQuiz: React.FC<MultipleChoiceQuizProps> = ({
 						className={
 							selectedAnswer === option
 								? isCorrect
-									? "bg-green-500 hover:bg-green-600"
-									: "bg-red-500 hover:bg-red-600"
-								: ""
+									? "bg-green-500 hover:bg-green-600 w-full"
+									: "bg-red-500 hover:bg-red-600 w-full"
+								: "w-full"
 						}
 						onClick={() => onSelectAnswer(option)}
 						variant={selectedAnswer === option ? "default" : "outline"}
@@ -46,9 +46,7 @@ const MultipleChoiceQuiz: React.FC<MultipleChoiceQuizProps> = ({
 				);
 			})}
 			{showAnswer && currentQuestion.explanation && (
-				<div className="mt-4 p-4 bg-muted rounded-lg">
-					<p className="font-semibold">Sample Answer:</p>
-					<p>{currentQuestion.answer}</p>
+				<div className="mt-4 p-4 bg-muted rounded-lg flex flex-col">
 					<p className="font-semibold">Explanation:</p>
 					<p>{currentQuestion.explanation}</p>
 				</div>
