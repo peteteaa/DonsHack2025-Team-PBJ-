@@ -3,11 +3,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Maximize2, Minimize2 } from "lucide-react";
-import { useVideoContext } from "@/context/VideoContext";
+import { useQuiz } from "@/hooks/useQuiz";
 import QuizSection from "@/components/QuizSection";
 import TranscriptSection from "@/components/TranscriptSection";
 import type { ContentTableItem } from "@shared/types";
-import { useState } from "react";
+import { useVideoContext } from "@/hooks/useVideoContext";
 
 interface TranscriptQuizContainerProps {
 	contentTable: ContentTableItem[];
@@ -16,14 +16,9 @@ interface TranscriptQuizContainerProps {
 const TranscriptQuizContainer: React.FC<TranscriptQuizContainerProps> = ({
 	contentTable,
 }) => {
-	const {
-		isFullscreen,
-		setIsFullscreen,
-		showQuiz,
-		setShowQuiz,
-		setSelectedAnswer,
-	} = useVideoContext();
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const { showQuiz, setShowQuiz } = useQuiz();
+	const { isFullscreen, setIsFullscreen } = useVideoContext();
+	const { errorMessage } = useQuiz();
 
 	return (
 		<Card
@@ -49,7 +44,6 @@ const TranscriptQuizContainer: React.FC<TranscriptQuizContainerProps> = ({
 						className="text-sm"
 						onClick={() => {
 							setShowQuiz(!showQuiz);
-							setSelectedAnswer(null);
 						}}
 						variant="ghost"
 					>
@@ -72,7 +66,7 @@ const TranscriptQuizContainer: React.FC<TranscriptQuizContainerProps> = ({
 
 			<CardContent>
 				{showQuiz ? (
-					<QuizSection setErrorMessage={setErrorMessage} />
+					<QuizSection />
 				) : (
 					<TranscriptSection contentTable={contentTable} />
 				)}

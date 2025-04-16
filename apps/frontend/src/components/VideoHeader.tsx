@@ -17,7 +17,7 @@ const VideoHeader: React.FC<VideoHeaderProps> = ({ title }) => {
 				<ThemeToggle />
 				<button
 					type="button"
-					onClick={() => router.push("/")}
+					onClick={() => router.push("/youtube")}
 					className="btn btn-outline btn-icon"
 				>
 					<HomeIcon />

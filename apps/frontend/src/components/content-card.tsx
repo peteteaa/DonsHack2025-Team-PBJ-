@@ -3,28 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useState } from "react";
-import type { UserNoteItem, ContentTableItem } from "@shared/types";
 import { formatTimestamp } from "@/lib/utils";
+import { useVideoContext } from "@/hooks/useVideoContext";
+import { useNotes } from "@/hooks/useNotes";
 
-interface ContentCardProps {
-	contentTable: ContentTableItem[];
-	savedNotes: UserNoteItem[];
-	note: string;
-	onSetNote: (note: string) => void;
-	onSaveNotes: (notes: string) => void;
-}
-
-const ContentCard = ({
-	contentTable,
-	savedNotes,
-	onSaveNotes,
-	onSetNote,
-	note,
-}: ContentCardProps) => {
+const ContentCard = () => {
+	const { videoPageData } = useVideoContext();
+	const { notes, note, setNote, handleSaveNotes } = useNotes();
 	const [isNotesView, setIsNotesView] = useState(false);
 
 	const toggleView = () => {
-		setIsNotesView(!isNotesView);
+		setIsNotesView((prev) => !prev);
 	};
 
 	return (
@@ -48,7 +37,7 @@ const ContentCard = ({
 							isNotesView ? "hidden" : "w-2/3"
 						} h-full overflow-auto`}
 					>
-						{contentTable.map((chapter) => (
+						{videoPageData?.video.contentTable.map((chapter) => (
 							<div className="border-b pb-4 last:border-0" key={chapter.id}>
 								<h3 className="text-base font-semibold mb-1">
 									{chapter.chapter}
@@ -70,13 +59,13 @@ const ContentCard = ({
 								<h3 className="text-base font-semibold mb-1">Your Notes</h3>
 								<textarea
 									className="w-full h-40 p-2 border rounded bg-background mb-2"
-									onChange={(e) => onSetNote(e.target.value)}
+									onChange={(e) => setNote(e.target.value)}
 									placeholder="Write your notes here..."
 									value={note}
 								/>
 								<Button
 									className="w-full mb-4"
-									onClick={() => onSaveNotes(note)}
+									onClick={() => handleSaveNotes(note)}
 									variant="outline"
 								>
 									Save Notes
@@ -84,7 +73,7 @@ const ContentCard = ({
 							</div>
 						)}
 						<div className="space-y-2">
-							{savedNotes.map((note) => (
+							{notes.map((note) => (
 								<div className="p-2 border rounded" key={note._id}>
 									<p className="text-sm">{note.text}</p>
 									{note.moment !== null && (
