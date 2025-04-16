@@ -30,7 +30,6 @@ const MultipleChoiceQuiz: React.FC<MultipleChoiceQuizProps> = ({
 						: currentQuestion.answer.includes(option);
 				return (
 					<Button
-						key={option}
 						className={
 							selectedAnswer === option
 								? isCorrect
@@ -38,6 +37,7 @@ const MultipleChoiceQuiz: React.FC<MultipleChoiceQuizProps> = ({
 									: "bg-red-500 hover:bg-red-600 w-full"
 								: "w-full"
 						}
+						key={option}
 						onClick={() => onSelectAnswer(option)}
 						variant={selectedAnswer === option ? "default" : "outline"}
 					>

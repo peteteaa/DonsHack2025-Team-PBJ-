@@ -2,10 +2,10 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useState } from "react";
-import { formatTimestamp } from "@/lib/utils";
-import { useVideoContext } from "@/hooks/useVideoContext";
 import { useNotes } from "@/hooks/useNotes";
+import { useVideoContext } from "@/hooks/useVideoContext";
+import { formatTimestamp } from "@/lib/utils";
+import { useState } from "react";
 
 const ContentCard = () => {
 	const { videoPageData } = useVideoContext();

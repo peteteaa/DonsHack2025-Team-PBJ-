@@ -1,10 +1,10 @@
 // /context/VideoContext.tsx
 "use client";
 
-import { createContext, useMemo } from "react";
-import type { VideoPage as VideoPageType } from "@shared/types";
-import type { YouTubePlayer } from "@/types";
 import { useVideoPage } from "@/hooks/useVideoPage";
+import type { YouTubePlayer } from "@/types";
+import type { VideoPage as VideoPageType } from "@shared/types";
+import { createContext, useMemo } from "react";
 
 // --- VideoContext: Provides video, quiz, and player state across the app ---
 
@@ -22,7 +22,7 @@ export interface VideoContextProps {
 }
 
 export const VideoContext = createContext<VideoContextProps | undefined>(
-	undefined
+	undefined,
 );
 
 // Custom hook has been moved to useVideoContext.ts

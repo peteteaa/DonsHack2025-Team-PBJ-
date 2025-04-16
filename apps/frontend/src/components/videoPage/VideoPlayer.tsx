@@ -8,8 +8,8 @@ const VideoPlayer = () => {
 			<div className="card-content p-0 h-full w-full">
 				<div className="relative pt-[56.25%] h-full w-full">
 					<div
-						id="youtube-player"
 						className="absolute inset-0 w-full h-full rounded-xl overflow-hidden"
+						id="youtube-player"
 					/>
 				</div>
 			</div>

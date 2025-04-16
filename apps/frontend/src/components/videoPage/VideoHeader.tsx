@@ -1,8 +1,8 @@
 // /components/VideoHeader.tsx
 "use client";
-import { useRouter } from "next/navigation";
-import { Home as HomeIcon } from "lucide-react";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { Home as HomeIcon } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface VideoHeaderProps {
 	title: string;
@@ -16,9 +16,9 @@ const VideoHeader: React.FC<VideoHeaderProps> = ({ title }) => {
 			<div className="flex gap-4">
 				<ThemeToggle />
 				<button
-					type="button"
-					onClick={() => router.push("/youtube")}
 					className="btn btn-outline btn-icon"
+					onClick={() => router.push("/youtube")}
+					type="button"
 				>
 					<HomeIcon />
 				</button>

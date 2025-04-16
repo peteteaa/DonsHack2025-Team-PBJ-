@@ -2,9 +2,9 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { useQuiz } from "@/hooks/useQuiz";
+import type { QuizMultipleItem, QuizOpenItem } from "@shared/types";
 import MultipleChoiceQuiz from "./MultipleChoiceQuiz";
 import ShortAnswerQuiz from "./ShortAnswerQuiz";
-import type { QuizMultipleItem, QuizOpenItem } from "@shared/types";
 
 const QuizSection: React.FC = () => {
 	const {
@@ -48,8 +48,8 @@ const QuizSection: React.FC = () => {
 				</div>
 				<Button
 					className="text-sm"
-					onClick={handleGenerateQuestions}
 					disabled={isGeneratingQuiz}
+					onClick={handleGenerateQuestions}
 					variant="outline"
 				>
 					{isGeneratingQuiz ? "Generating Quiz..." : "Generate Quiz"}
@@ -81,17 +81,17 @@ const QuizSection: React.FC = () => {
 				{questionType === "multiple" ? (
 					<MultipleChoiceQuiz
 						currentQuestion={currentQuestion as QuizMultipleItem}
+						onSelectAnswer={handleAnswerSelect}
 						selectedAnswer={selectedAnswer}
 						showAnswer={showAnswer}
-						onSelectAnswer={handleAnswerSelect}
 					/>
 				) : (
 					<ShortAnswerQuiz
 						currentQuestion={currentQuestion as QuizOpenItem}
+						onChangeAnswer={handleAnswerSelect}
+						onSubmitAnswer={handleShortAnswerSubmit}
 						selectedAnswer={selectedAnswer}
 						showAnswer={showAnswer}
-						onSubmitAnswer={handleShortAnswerSubmit}
-						onChangeAnswer={handleAnswerSelect}
 					/>
 				)}
 			</>
@@ -105,11 +105,11 @@ const QuizSection: React.FC = () => {
 				<div className="flex justify-end">
 					<Button
 						className="text-sm"
-						onClick={handleNextQuestion}
-						variant="default"
 						disabled={
 							!isAnswer || currentQuestionIndex >= quizData.quiz.length - 1
 						}
+						onClick={handleNextQuestion}
+						variant="default"
 					>
 						Next Question
 					</Button>

@@ -1,13 +1,13 @@
 // /components/TranscriptQuizContainer.tsx
 "use client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Maximize2, Minimize2 } from "lucide-react";
-import { useQuiz } from "@/hooks/useQuiz";
 import QuizSection from "@/components/quiz/QuizSection";
 import TranscriptSection from "@/components/transcript/TranscriptSection";
-import type { ContentTableItem } from "@shared/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuiz } from "@/hooks/useQuiz";
 import { useVideoContext } from "@/hooks/useVideoContext";
+import type { ContentTableItem } from "@shared/types";
+import { Maximize2, Minimize2 } from "lucide-react";
 
 interface TranscriptQuizContainerProps {
 	contentTable: ContentTableItem[];
