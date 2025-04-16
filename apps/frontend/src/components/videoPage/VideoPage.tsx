@@ -1,10 +1,10 @@
 // /components/VideoPage.tsx
 "use client";
 import { useVideoContext } from "@/hooks/useVideoContext";
-import VideoHeader from "@/components/VideoHeader";
-import VideoPlayer from "@/components/VideoPlayer";
-import TranscriptQuiz from "@/components/TranscriptQuizContainer";
-import NotesPanel from "@/components/NotesPanel";
+import VideoHeader from "@/components/videoPage/VideoHeader";
+import VideoPlayer from "@/components/videoPage/VideoPlayer";
+import TranscriptQuiz from "@/components/transcript/TranscriptQuizContainer";
+import NotesPanel from "@/components/notes/NotesPanel";
 
 const VideoPage = () => {
 	const { videoPageData, isLoading, error } = useVideoContext();

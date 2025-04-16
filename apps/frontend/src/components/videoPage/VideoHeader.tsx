@@ -2,7 +2,7 @@
 "use client";
 import { useRouter } from "next/navigation";
 import { Home as HomeIcon } from "lucide-react";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 interface VideoHeaderProps {
 	title: string;
